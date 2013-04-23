@@ -1,0 +1,2 @@
+A reusable Django app to attach task lists to models and let them be managed by
+multiple users.
