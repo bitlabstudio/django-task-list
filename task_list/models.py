@@ -130,7 +130,7 @@ class Task(models.Model):
         return self.title
 
     class Meta:
-        ordering = ['due_date']
+        ordering = ['due_date', 'priority', 'title']
 
 
 class TaskList(models.Model):
