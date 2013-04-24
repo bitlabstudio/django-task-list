@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
-from django.views.generic import CreateView, DeleteView, UpdateView
+from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
 from .forms import TaskListCreateForm, TaskListUpdateForm
 from .models import TaskList
@@ -68,8 +68,15 @@ class TaskListDeleteView(LoginRequiredMixin, TaskListPermissionMixin,
     template_name = 'task_list/task_list_delete.html'
 
     def get_success_url(self):
-        # TODO change this to task_list_list, when it exists
-        return reverse('task_list_create')
+        return reverse('task_list_list')
+
+
+class TaskListListView(LoginRequiredMixin, ListView):
+    """View to list all TaskList objects for the current user."""
+    template_name = 'task_list/task_list_list.html'
+
+    def get_queryset(self):
+        return TaskList.objects.filter(users__pk=self.user.pk)
 
 
 class TaskListUpdateView(TaskListCRUDViewMixin, TaskListPermissionMixin,

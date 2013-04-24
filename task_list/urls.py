@@ -1,7 +1,12 @@
 """URLs for the ``task_list`` app."""
 from django.conf.urls.defaults import patterns, url
 
-from .views import TaskListCreateView, TaskListDeleteView, TaskListUpdateView
+from .views import (
+    TaskListCreateView,
+    TaskListDeleteView,
+    TaskListListView,
+    TaskListUpdateView,
+)
 
 
 urlpatterns = patterns(
@@ -12,4 +17,6 @@ urlpatterns = patterns(
         name='task_list_update'),
     url(r'task_list/(?P<pk>\d+)/delete/$', TaskListDeleteView.as_view(),
         name='task_list_delete'),
+    url(r'task_list/list/$', TaskListListView.as_view(),
+        name='task_list_list'),
 )

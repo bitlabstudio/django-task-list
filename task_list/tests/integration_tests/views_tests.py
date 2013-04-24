@@ -75,7 +75,24 @@ class TaskListDeleteViewTestCase(PatchedViewTestMixin, TestCase):
         self.is_not_callable(user=UserFactory(), message=(
             'The view should not be callable by other users.'))
         self.is_callable(user=self.user, method='post', data={},
-                         and_redirects_to=reverse('task_list_create'))
+                         and_redirects_to=reverse('task_list_list'))
+
+
+class TaskListListViewTestCase(PatchedViewTestMixin, TestCase):
+    """Tests fo the ``TaskListListView`` view class."""
+    longMessage = True
+
+    def setUp(self):
+        self.user = UserFactory()
+        self.task_list = TaskListFactory()
+        self.task_list.users.add(self.user)
+
+    def get_view_name(self):
+        return 'task_list_list'
+
+    def test_view(self):
+        self.should_redirect_to_login_when_anonymous()
+        self.should_be_callable_when_authenticated(self.user)
 
 
 class TaskListUpdateViewTestCase(PatchedViewTestMixin, TestCase):
