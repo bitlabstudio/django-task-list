@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
-from django.views.generic import CreateView, UpdateView
+from django.views.generic import CreateView, DeleteView, UpdateView
 
 from .forms import TaskListCreateForm, TaskListUpdateForm
 from .models import TaskList
@@ -34,6 +34,21 @@ class TaskListCRUDViewMixin(object):
         return reverse('task_list_update', kwargs={'pk': self.object.pk})
 
 
+class TaskListPermissionMixin(object):
+    """
+    Adds a dispatch method that checks if the user is assigned to the list.
+
+    """
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        self.user = request.user
+        task_list = get_object_or_404(TaskList, pk=kwargs.get('pk'))
+        if not self.user in task_list.users.all():
+            raise Http404
+        return super(TaskListPermissionMixin, self).dispatch(
+            request, *args, **kwargs)
+
+
 # =====
 # Views
 # =====
@@ -46,17 +61,20 @@ class TaskListCreateView(LoginRequiredMixin, TaskListCRUDViewMixin,
     template_name = 'task_list/task_list_create.html'
 
 
-class TaskListUpdateView(TaskListCRUDViewMixin, UpdateView):
+class TaskListDeleteView(LoginRequiredMixin, TaskListPermissionMixin,
+                         DeleteView):
+    """View to let users delete a task list and all tasks."""
+    model = TaskList
+    template_name = 'task_list/task_list_delete.html'
+
+    def get_success_url(self):
+        # TODO change this to task_list_list, when it exists
+        return reverse('task_list_create')
+
+
+class TaskListUpdateView(TaskListCRUDViewMixin, TaskListPermissionMixin,
+                         UpdateView):
     """A view to update a task list."""
     form_class = TaskListUpdateForm
     model = TaskList
     template_name = 'task_list/task_list_update.html'
-
-    @method_decorator(login_required)
-    def dispatch(self, request, *args, **kwargs):
-        self.user = request.user
-        task_list = get_object_or_404(TaskList, pk=kwargs.get('pk'))
-        if not self.user in task_list.users.all():
-            raise Http404
-        return super(TaskListUpdateView, self).dispatch(
-            request, *args, **kwargs)

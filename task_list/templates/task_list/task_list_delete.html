@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load url from future %}
+
+{% block main %}
+<h1>{% trans "Delete task list?" %}</h1>
+<p>
+{% blocktrans with object.title as title%}
+    This will delete the task list "{{ title }}" and all tasks in it.
+{% endblocktrans %}
+</p>
+<form method="post" action=".">
+    {% csrf_token %}
+    <input type="submit" value="{% trans "Confirm deletion" %}" />
+    <a href="{% url "task_list_update" pk=object.pk %}">{% trans "or cancel" %}</a>
+</form>
+{% endblock %}
