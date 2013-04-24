@@ -70,3 +70,5 @@ COVERAGE_MODULE_EXCLUDES += EXTERNAL_APPS
 
 # dummy key so django will allow the tests to run
 SECRET_KEY = 'foobar'
+
+LOGIN_URL = '/'

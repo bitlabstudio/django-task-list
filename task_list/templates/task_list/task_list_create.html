@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block main %}
+    <form method="post" action=".">
+        {% csrf_token %}
+        <p>{% trans "Pleace enter a title for your task list." %}</p>
+        <div>
+            <span>{{ form.title.label }}</span>
+            <span>{{ form.title }}</span>
+        </div>
+        <input type="submit" value="{% trans "Submit" %}" />
+    </form>
+{% endblock %}

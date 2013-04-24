@@ -1,1 +1,49 @@
 """Tests for the views of the ``task_list`` app."""
+from mock import Mock
+
+from django.test import TestCase
+
+from django_libs.tests.factories import UserFactory
+from django_libs.tests.mixins import ViewTestMixin
+
+from ...forms import TaskListCreateForm
+
+
+# ======
+# Mixins
+# ======
+
+class PatchedViewTestMixin(ViewTestMixin):
+    def should_redirect_to_login_when_anonymous(self):
+        """Custom method to overwrite the one from django_libs."""
+        url = self.get_url()
+        resp = self.client.get(url)
+        self.assertRedirects(resp, '{0}?next={1}'.format('/', url))
+
+
+# =====
+# Tests
+# =====
+
+class TaskListCreateViewTestCase(PatchedViewTestMixin, TestCase):
+    """Tests for the ``TaskListCreateView`` view class."""
+    longMessage = True
+
+    def get_view_name(self):
+        return 'task_list_create'
+
+    def setUp(self):
+        self.user = UserFactory()
+        self.old_is_valid = TaskListCreateForm.is_valid
+        self.old_save = TaskListCreateForm.save
+        TaskListCreateForm.is_valid = Mock(return_value=True)
+        TaskListCreateForm.save = Mock()
+
+    def tearDown(self):
+        TaskListCreateForm.is_valid = self.old_is_valid
+        TaskListCreateForm.save = self.old_save
+
+    def test_view(self):
+        self.should_redirect_to_login_when_anonymous()
+        self.should_be_callable_when_authenticated(self.user)
+        self.is_callable(method='post', data={})
