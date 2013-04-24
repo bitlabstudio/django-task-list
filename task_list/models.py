@@ -10,7 +10,7 @@ from .constants import PRIORITY_CHOICES
 
 class Category(models.Model):
     """
-    Used to groub tasks under one category.
+    Used to group tasks under one category.
 
     :title: The title of the category.
 
@@ -23,15 +23,20 @@ class Category(models.Model):
     def __unicode__(self):
         return self.title
 
+    class Meta:
+        ordering = ['title']
+
 
 class Parent(models.Model):
     """
     Used to bind a TaskList to an external model.
 
-    :content_type: If this image belongs to a certain object (i.e. a Wedding),
-      this should be the object's ContentType.
-    :object_id: If this image belongs to a certain object (i.e. a Wedding),
-      this should be the object's ID.
+    :content_type: If the related list belongs to a certain object
+      (i.e. a Wedding), this should be the object's ContentType.
+    :object_id: If the related list belongs to a certain object
+      (i.e. a Wedding), this should be the object's ID.
+    :task_list: The task list the content object belongs to.
+
     """
     content_type = models.ForeignKey(
         ContentType,
@@ -58,10 +63,10 @@ class Task(models.Model):
     :attachment: A file attachment.
     :category: The ``Category`` this task belongs to.
     :description: A further description about the task.
-    :due_date: Lets the user chose a due date for this task.
+    :due_date: Lets the user choose a due date for this task.
     :is_done: If the task is done, this holds the datetime, else it is None.
     :is_example: Is True if this task was generated as pre-filled example.
-    :priority: Lets the user chose a priority level for this task.
+    :priority: Lets the user choose a priority level for this task.
     :task_list: The ``TaskList`` this task belongs to.
     :title: The title of the task.
 
@@ -69,7 +74,7 @@ class Task(models.Model):
     assigned_to = models.ManyToManyField(
         'auth.User',
         verbose_name=_('Users'),
-        related_name='task_lists',
+        related_name='tasks',
     )
 
     attachment = FilerFileField(
@@ -108,7 +113,7 @@ class Task(models.Model):
         verbose_name=_('Priority'),
         max_length=8,
         choices=PRIORITY_CHOICES,
-        default='1',
+        default='3',
     )
 
     task_list = models.ForeignKey(
@@ -123,6 +128,9 @@ class Task(models.Model):
 
     def __unicode__(self):
         return self.title
+
+    class Meta:
+        ordering = ['due_date']
 
 
 class TaskList(models.Model):
@@ -153,3 +161,6 @@ class TaskList(models.Model):
 
     def __unicode__(self):
         return self.title
+
+    class Meta:
+        ordering = ['title']

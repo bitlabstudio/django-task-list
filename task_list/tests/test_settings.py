@@ -66,3 +66,7 @@ TEST_APPS = [
 INSTALLED_APPS = EXTERNAL_APPS + INTERNAL_APPS + TEST_APPS
 
 COVERAGE_MODULE_EXCLUDES += EXTERNAL_APPS
+
+
+# dummy key so django will allow the tests to run
+SECRET_KEY = 'foobar'
