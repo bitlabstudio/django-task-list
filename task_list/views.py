@@ -34,18 +34,20 @@ class TaskListCRUDViewMixin(object):
         return reverse('task_list_update', kwargs={'pk': self.object.pk})
 
 
-class TaskListPermissionMixin(object):
+class PermissionMixin(object):
     """
-    Adds a dispatch method that checks if the user is assigned to the list.
+    Adds a dispatch method that checks if the user is assigned to the object.
 
     """
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         self.user = request.user
-        task_list = get_object_or_404(TaskList, pk=kwargs.get('pk'))
+        task_list = get_object_or_404(self.model, pk=kwargs.get('pk'))
+        # since we allow to only add users to a task, that are on the task
+        # list, the following check will also be secure for tasks
         if not self.user in task_list.users.all():
             raise Http404
-        return super(TaskListPermissionMixin, self).dispatch(
+        return super(PermissionMixin, self).dispatch(
             request, *args, **kwargs)
 
 
@@ -61,7 +63,7 @@ class TaskListCreateView(LoginRequiredMixin, TaskListCRUDViewMixin,
     template_name = 'task_list/task_list_create.html'
 
 
-class TaskListDeleteView(LoginRequiredMixin, TaskListPermissionMixin,
+class TaskListDeleteView(LoginRequiredMixin, PermissionMixin,
                          DeleteView):
     """View to let users delete a task list and all tasks."""
     model = TaskList
@@ -79,7 +81,7 @@ class TaskListListView(LoginRequiredMixin, ListView):
         return TaskList.objects.filter(users__pk=self.user.pk)
 
 
-class TaskListUpdateView(TaskListCRUDViewMixin, TaskListPermissionMixin,
+class TaskListUpdateView(TaskListCRUDViewMixin, PermissionMixin,
                          UpdateView):
     """A view to update a task list."""
     form_class = TaskListUpdateForm
