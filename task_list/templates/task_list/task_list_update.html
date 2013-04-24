@@ -2,11 +2,11 @@
 {% load i18n %}
 
 {% block main %}
-    <h1>{% trans "Create task list" %}</h1>
+    <h1>{% trans "Update task list" %}</h1>
     <form method="post" action=".">
         {% csrf_token %}
-        <p>{% trans "Pleace enter a title for your task list." %}</p>
         {{ form.non_field_errors }}
+        <p>{% trans "Update the title of your task list or add and remove users, that can access the list." %}</p>
         {% for field in form %}
             {% include "task_list/partials/simple_form_field.html" %}
         {% endfor %}
