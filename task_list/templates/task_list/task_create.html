@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block main %}
+    <h1>{% trans "Create task" %}</h1>
+    <form method="post" action=".">
+        {% csrf_token %}
+        <p>{% trans "Pleace enter a title for your task." %}</p>
+        {{ form.non_field_errors }}
+        {% for field in form %}
+            {% include "task_list/partials/simple_form_field.html" %}
+        {% endfor %}
+        <input type="submit" value="{% trans "Submit" %}" />
+        <a href="{% url "task_list" pk=task_list.pk %}">{% trans "back to tasks" %}</a>
+    </form>
+{% endblock %}

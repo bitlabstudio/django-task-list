@@ -119,6 +119,7 @@ class Task(models.Model):
     task_list = models.ForeignKey(
         'task_list.TaskList',
         verbose_name=_('Task list'),
+        related_name='tasks',
     )
 
     title = models.CharField(

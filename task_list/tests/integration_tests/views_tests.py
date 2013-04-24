@@ -7,8 +7,13 @@ from django.test import TestCase
 from django_libs.tests.factories import UserFactory
 from django_libs.tests.mixins import ViewTestMixin
 
-from ...forms import TaskListCreateForm, TaskListUpdateForm
-from ..factories import TaskListFactory
+from ...forms import (
+    TaskCreateForm,
+    TaskListCreateForm,
+    TaskListUpdateForm,
+    TaskUpdateForm,
+)
+from ..factories import TaskFactory, TaskListFactory
 
 
 # ======
@@ -26,6 +31,65 @@ class PatchedViewTestMixin(ViewTestMixin):
 # =====
 # Tests
 # =====
+
+
+class TaskCreateViewTestCase(PatchedViewTestMixin, TestCase):
+    """Tests for the ``TaskCreateView`` view class."""
+    longMessage = True
+
+    def get_view_name(self):
+        return 'task_create'
+
+    def get_view_kwargs(self):
+        return {'pk': self.task_list.pk}
+
+    def setUp(self):
+        self.user = UserFactory()
+        self.task_list = TaskListFactory()
+        self.task_list.users.add(self.user)
+        self.old_is_valid = TaskCreateForm.is_valid
+        self.old_save = TaskCreateForm.save
+        TaskCreateForm.is_valid = Mock(return_value=True)
+        false_list = Mock(pk=1)
+        TaskCreateForm.save = Mock(return_value=false_list)
+
+    def tearDown(self):
+        TaskCreateForm.is_valid = self.old_is_valid
+        TaskCreateForm.save = self.old_save
+
+    def test_view(self):
+        """Test for the ``TaskCreateView`` view class."""
+        self.should_redirect_to_login_when_anonymous()
+        self.should_be_callable_when_authenticated(self.user)
+        self.is_callable(method='post', data={})
+        self.is_not_callable(user=UserFactory())
+
+
+class TaskDeleteViewTestCase(PatchedViewTestMixin, TestCase):
+    """Tests or the ``TaskDeleteView`` view class."""
+    longMessage = True
+
+    def setUp(self):
+        self.user = UserFactory()
+        self.task = TaskFactory()
+        self.task.task_list.users.add(self.user)
+
+    def get_view_name(self):
+        return 'task_delete'
+
+    def get_view_kwargs(self):
+        return {'pk': self.task.task_list.pk, 'task_pk': self.task.pk}
+
+    def test_view(self):
+        """Test for the ``TaskDeleteView`` view class."""
+        self.should_redirect_to_login_when_anonymous()
+        self.should_be_callable_when_authenticated(self.user)
+        self.is_not_callable(user=UserFactory(), message=(
+            'The view should not be callable by other users.'))
+        self.is_callable(user=self.user, method='post', data={},
+                         and_redirects_to=reverse('task_list', kwargs={
+                             'pk': self.task.task_list.pk}))
+
 
 class TaskListCreateViewTestCase(PatchedViewTestMixin, TestCase):
     """Tests for the ``TaskListCreateView`` view class."""
@@ -126,3 +190,55 @@ class TaskListUpdateViewTestCase(PatchedViewTestMixin, TestCase):
         self.is_callable(method='post', data={})
         self.is_not_callable(user=UserFactory(), message=(
             'The view should not be callable by other users.'))
+
+
+class TaskListViewTestCase(PatchedViewTestMixin, TestCase):
+    """Tests for the ``TaskListView`` view class."""
+    longMessage = True
+
+    def get_view_name(self):
+        return 'task_list'
+
+    def get_view_kwargs(self):
+        return {'pk': self.task.task_list.pk}
+
+    def setUp(self):
+        self.user = UserFactory()
+        self.task = TaskFactory()
+        self.task.task_list.users.add(self.user)
+
+    def test_view(self):
+        self.should_redirect_to_login_when_anonymous()
+        self.should_be_callable_when_authenticated(self.user)
+
+
+class TaskUpdateViewTestCase(PatchedViewTestMixin, TestCase):
+    """Tests for the ``TaskUpdateView`` view class."""
+    longMessage = True
+
+    def get_view_name(self):
+        return 'task_update'
+
+    def get_view_kwargs(self):
+        return {'pk': self.task.task_list.pk, 'task_pk': self.task.pk}
+
+    def setUp(self):
+        self.user = UserFactory()
+        self.task = TaskFactory()
+        self.task.task_list.users.add(self.user)
+        self.old_is_valid = TaskUpdateForm.is_valid
+        self.old_save = TaskUpdateForm.save
+        TaskUpdateForm.is_valid = Mock(return_value=True)
+        false_list = Mock(pk=1)
+        TaskUpdateForm.save = Mock(return_value=false_list)
+
+    def tearDown(self):
+        TaskUpdateForm.is_valid = self.old_is_valid
+        TaskUpdateForm.save = self.old_save
+
+    def test_view(self):
+        """Test for the ``TaskUpdateView`` view class."""
+        self.should_redirect_to_login_when_anonymous()
+        self.should_be_callable_when_authenticated(self.user)
+        self.is_callable(method='post', data={})
+        self.is_not_callable(user=UserFactory())

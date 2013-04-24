@@ -60,6 +60,7 @@ class TaskListUpdateForm(TaskFormMixin, forms.ModelForm):
 
 class TaskUpdateForm(TaskFormMixin, forms.ModelForm):
     """ModelForm to update an instance of the ``TaskList`` model."""
+    # TODO change is_done widget to that button swith thing we discussed
     class Meta:
         model = Task
         fields = ('title', 'description', 'attachment', 'category', 'priority',
