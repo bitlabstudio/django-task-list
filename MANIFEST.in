@@ -3,7 +3,7 @@ include LICENSE
 include DESCRIPTION
 include CHANGELOG.txt
 include README.md
-graft calendarium
+graft task_list
 global-exclude *.orig *.pyc *.log
 prune task_list/tests/coverage/
 prune task_list/.ropeproject/

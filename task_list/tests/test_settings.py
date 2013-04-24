@@ -2,8 +2,7 @@
 import os
 
 DEBUG = True
-USE_TZ = True
-TIME_ZONE = 'Asia/Singapore'
+FILER_DEBUG = True
 
 SITE_ID = 1
 
@@ -52,6 +51,9 @@ EXTERNAL_APPS = [
     'django.contrib.sitemaps',
     'django.contrib.sites',
     'django_nose',
+    'filer',
+    'mptt',
+    'easy_thumbnails',
 ]
 
 INTERNAL_APPS = [

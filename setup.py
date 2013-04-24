@@ -17,7 +17,7 @@ setup(
     long_description=read('README.rst'),
     license='The MIT License',
     platforms=['OS Independent'],
-    keywords='django, calendar, app, widget, events, schedule',
+    keywords='django, app, tasks, todo, list, generic',
     author='Daniel Kaufhold',
     author_email='daniel.kaufhold@bitmazk.com',
     url="https://github.com/bitmazk/django-task-list",

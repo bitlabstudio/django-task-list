@@ -3,18 +3,22 @@
 # ===========================================================================
 # Packages essential to this app. Needed by anyone who wants to use this app.
 # ===========================================================================
-django==1.4.3
+
+# TODO install this version of Django
+Django==1.5
 South==0.7.6
+django-filer==0.9.4
+Pillow==2.0
 
 
 # ==============================================================
 # Packages needed for running the tests. Needed by contributors.
 # ==============================================================
-factory-boy
-django-libs
-Fabric
-mock
-django-nose
-coverage
-django-coverage
-ipdb
+factory-boy==2.0.2
+django-libs==1.4.2
+Fabric==1.6.0
+mock==1.0.1
+django-nose==1.1
+coverage==3.6
+django-coverage==1.2.2
+ipdb==0.7
