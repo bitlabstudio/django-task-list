@@ -30,10 +30,10 @@ urlpatterns = patterns(
         name='task_list'),
     url(r'^(?P<pk>\d+)/create/$', TaskCreateView.as_view(),
         name='task_create'),
-    url(r'^task/(?P<task_pk>\d+)/update/$',
+    url(r'^task/(?P<pk>\d+)/update/$',
         TaskUpdateView.as_view(),
         name='task_update'),
-    url(r'^task/(?P<task_pk>\d+)/delete/$',
+    url(r'^task/(?P<pk>\d+)/delete/$',
         TaskDeleteView.as_view(),
         name='task_delete'),
 )

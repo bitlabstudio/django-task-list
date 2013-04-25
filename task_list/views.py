@@ -2,9 +2,9 @@
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 from django.http import Http404
-from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
+from django.shortcuts import get_object_or_404
 
 from .forms import (
     TaskCreateForm,
@@ -18,6 +18,13 @@ from .models import Task, TaskList
 # ======
 # Mixins
 # ======
+
+class GetObjectMixin(object):
+    """Adds a get_object method to the inheriting view."""
+    def get_object(self, **kwargs):
+        if self.model:
+            return get_object_or_404(self.model, pk=self.kwargs.get('pk'))
+
 
 class LoginRequiredMixin(object):
     """Mixin to add a basic login required decorated dispatch method."""
@@ -35,7 +42,7 @@ class TaskCRUDViewMixin(object):
         return kwargs
 
     def get_success_url(self):
-        return reverse('task_update', kwargs={'task_pk': self.object.pk})
+        return reverse('task_update', kwargs={'pk': self.object.pk})
 
 
 class TaskListCRUDViewMixin(object):
@@ -49,18 +56,19 @@ class TaskListCRUDViewMixin(object):
         return reverse('task_list_update', kwargs={'pk': self.object.pk})
 
 
-class PermissionMixin(object):
+class PermissionMixin(GetObjectMixin):
     """
     Adds a dispatch method that checks if the user is assigned to the object.
 
     """
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        if getattr(self, 'pk_url_kwarg', 'pk') == 'task_pk':
-            task = get_object_or_404(Task, pk=kwargs.get('task_pk'))
-            self.task_list = task.task_list
+        self.kwargs = kwargs
+        self.object = self.get_object()
+        if isinstance(self.object, Task):
+            self.task_list = self.object.task_list
         else:
-            self.task_list = get_object_or_404(TaskList, pk=kwargs.get('pk'))
+            self.task_list = self.object
         # since we allow to only add users to a task, that are on the task
         # list, the following check will also be secure for tasks
         if not self.request.user in self.task_list.users.all():
@@ -84,12 +92,14 @@ class TaskCreateView(PermissionMixin, TaskCRUDViewMixin, CreateView):
     model = Task
     template_name = 'task_list/task_create.html'
 
+    def get_object(self, **kwargs):
+        return get_object_or_404(TaskList, pk=self.kwargs.get('pk'))
+
 
 class TaskDeleteView(PermissionMixin, DeleteView):
     """View that lets the user delete a task."""
     model = Task
     template_name = 'task_list/task_delete.html'
-    pk_url_kwarg = 'task_pk'
 
     def get_success_url(self):
         return reverse('task_list', kwargs={'pk': self.task_list.pk})
@@ -114,6 +124,7 @@ class TaskListDeleteView(PermissionMixin, DeleteView):
 
 class TaskListListView(LoginRequiredMixin, ListView):
     """View to list all TaskList objects for the current user."""
+    model = TaskList
     template_name = 'task_list/task_list_list.html'
 
     def get_queryset(self):
@@ -129,6 +140,7 @@ class TaskListUpdateView(TaskListCRUDViewMixin, PermissionMixin, UpdateView):
 
 class TaskListView(PermissionMixin, ListView):
     """A view that lists all tasks of a task list."""
+    model = TaskList
     template_name = 'task_list/task_list.html'
 
     def get_queryset(self):
@@ -140,4 +152,3 @@ class TaskUpdateView(PermissionMixin, TaskCRUDViewMixin, UpdateView):
     form_class = TaskUpdateForm
     model = Task
     template_name = 'task_list/task_update.html'
-    pk_url_kwarg = 'task_pk'

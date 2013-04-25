@@ -79,7 +79,7 @@ class TaskDeleteViewTestCase(PatchedViewTestMixin, TestCase):
         return 'task_delete'
 
     def get_view_kwargs(self):
-        return {'task_pk': self.task.pk}
+        return {'pk': self.task.pk}
 
     def test_view(self):
         """Test for the ``TaskDeleteView`` view class."""
@@ -221,7 +221,7 @@ class TaskUpdateViewTestCase(PatchedViewTestMixin, TestCase):
         return 'task_update'
 
     def get_view_kwargs(self):
-        return {'task_pk': self.task.pk}
+        return {'pk': self.task.pk}
 
     def setUp(self):
         self.user = UserFactory()

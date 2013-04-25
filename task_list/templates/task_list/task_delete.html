@@ -12,6 +12,6 @@
 <form method="post" action=".">
     {% csrf_token %}
     <input type="submit" value="{% trans "Confirm deletion" %}" />
-    <a href="{% url "task_update" task_pk=object.pk %}">{% trans "or cancel" %}</a>
+    <a href="{% url "task_update" pk=object.pk %}">{% trans "or cancel" %}</a>
 </form>
 {% endblock %}
