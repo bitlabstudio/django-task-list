@@ -23,7 +23,6 @@ class LoginRequiredMixin(object):
     """Mixin to add a basic login required decorated dispatch method."""
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        self.user = request.user
         return super(LoginRequiredMixin, self).dispatch(
             request, *args, **kwargs)
 
@@ -34,7 +33,7 @@ class TaskCRUDViewMixin(object):
 
     def get_form_kwargs(self):
         kwargs = super(TaskCRUDViewMixin, self).get_form_kwargs()
-        kwargs.update({'user': self.user, 'task_list': self.task_list})
+        kwargs.update({'user': self.request.user, 'task_list': self.task_list})
         return kwargs
 
     def get_success_url(self):
@@ -46,7 +45,7 @@ class TaskListCRUDViewMixin(object):
     """Mixin to add common methods to the task list CRUD views."""
     def get_form_kwargs(self):
         kwargs = super(TaskListCRUDViewMixin, self).get_form_kwargs()
-        kwargs.update({'user': self.user})
+        kwargs.update({'user': self.request.user})
         return kwargs
 
     def get_success_url(self):
@@ -60,11 +59,10 @@ class PermissionMixin(object):
     """
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        self.user = request.user
         self.task_list = get_object_or_404(TaskList, pk=kwargs.get('pk'))
         # since we allow to only add users to a task, that are on the task
         # list, the following check will also be secure for tasks
-        if not self.user in self.task_list.users.all():
+        if not self.request.user in self.task_list.users.all():
             raise Http404
         return super(PermissionMixin, self).dispatch(
             request, *args, **kwargs)
@@ -117,7 +115,7 @@ class TaskListListView(LoginRequiredMixin, ListView):
     template_name = 'task_list/task_list_list.html'
 
     def get_queryset(self):
-        return TaskList.objects.filter(users__pk=self.user.pk)
+        return TaskList.objects.filter(users__pk=self.request.user.pk)
 
 
 class TaskListUpdateView(TaskListCRUDViewMixin, PermissionMixin, UpdateView):
