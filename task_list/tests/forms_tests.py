@@ -49,6 +49,8 @@ class TaskCreateFormTestCase(TestCase):
 
 class TaskDoneToggleFormTestCase(TestCase):
     """Test for the ``TaskDoneToggleForm`` form class."""
+    longMessage = True
+
     def setUp(self):
         self.task = TaskFactory()
         self.valid_data = {'task': self.task.pk}
@@ -59,6 +61,10 @@ class TaskDoneToggleFormTestCase(TestCase):
         form.save()
         self.assertEqual(type(Task.objects.get().is_done), date, msg=(
             'After save is called, is_done should be a date.'))
+
+        form.save()
+        self.assertEqual(Task.objects.get().is_done, None, msg=(
+            'After save is called again, is_done should be None again.'))
 
 
 class TaskListCreateFormTestCase(TestCase):
@@ -162,3 +168,13 @@ class TaskUpdateFormTestCase(TestCase):
                               instance=instance)
         self.assertFalse(form.is_valid(), msg=(
             'Without correct data, the form should not be valid.'))
+
+        data = self.valid_data.copy()
+        data.update({'task': self.task.pk})
+        form = TaskUpdateForm(data=data, user=self.user,
+                              task_list=self.task.task_list,
+                              instance=self.task)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertEqual(type(Task.objects.get().is_done), date, msg=(
+            'After save is called, is_done should be a date.'))

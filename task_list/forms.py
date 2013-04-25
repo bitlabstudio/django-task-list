@@ -77,11 +77,10 @@ class TaskListUpdateForm(TaskFormMixin, forms.ModelForm):
 
 class TaskUpdateForm(TaskFormMixin, forms.ModelForm):
     """ModelForm to update an instance of the ``TaskList`` model."""
-    # TODO change is_done widget to that button swith thing we discussed
     class Meta:
         model = Task
         fields = ('title', 'description', 'category', 'priority',
-                  'due_date', 'assigned_to', 'is_done')
+                  'due_date', 'assigned_to')
 
     def __init__(self, user, task_list, *args, **kwargs):
         self.task_list = task_list
@@ -89,4 +88,9 @@ class TaskUpdateForm(TaskFormMixin, forms.ModelForm):
 
     def save(self, *args, **kwargs):
         self.instance.task_list = self.task_list
+        task_toggle = self.data.get('task')
+        if task_toggle and not self.instance.is_done:
+            self.instance.is_done = now()
+        else:
+            self.instance.is_done = None
         return super(TaskUpdateForm, self).save(*args, **kwargs)

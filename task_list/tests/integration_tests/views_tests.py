@@ -212,6 +212,7 @@ class TaskListViewTestCase(PatchedViewTestMixin, TestCase):
         self.should_redirect_to_login_when_anonymous()
         self.should_be_callable_when_authenticated(self.user)
         self.is_callable(method='post', data={'task': self.task.pk})
+        self.is_not_callable(user=UserFactory())
 
 
 class TaskUpdateViewTestCase(PatchedViewTestMixin, TestCase):

@@ -10,6 +10,10 @@
         {% for field in form %}
             {% include "task_list/partials/simple_form_field.html" %}
         {% endfor %}
+        <div>
+            <input type="submit" name="toggle" value="{% if task.is_done %}{% trans "mark undone" %}{% else %}{% trans "mark done" %}{% endif %}" />
+            <input type="hidden" name="task" value="{{ task.pk }}"/>
+        </div>
         <input type="submit" value="{% trans "Submit" %}" />
         <a href="{% url "task_list" pk=task_list.pk %}">{% trans "back to tasks" %}</a>
     </form>
