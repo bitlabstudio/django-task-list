@@ -88,9 +88,10 @@ class TaskUpdateForm(TaskFormMixin, forms.ModelForm):
 
     def save(self, *args, **kwargs):
         self.instance.task_list = self.task_list
-        task_toggle = self.data.get('task')
-        if task_toggle and not self.instance.is_done:
-            self.instance.is_done = now()
-        else:
-            self.instance.is_done = None
+        if 'toggle' in self.data:
+            task_toggle = self.data.get('task')
+            if task_toggle and not self.instance.is_done:
+                self.instance.is_done = now()
+            else:
+                self.instance.is_done = None
         return super(TaskUpdateForm, self).save(*args, **kwargs)

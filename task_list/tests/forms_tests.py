@@ -170,11 +170,22 @@ class TaskUpdateFormTestCase(TestCase):
             'Without correct data, the form should not be valid.'))
 
         data = self.valid_data.copy()
-        data.update({'task': self.task.pk})
+        data.update({'task': self.task.pk, 'toggle': 'value'})
         form = TaskUpdateForm(data=data, user=self.user,
                               task_list=self.task.task_list,
                               instance=self.task)
         self.assertTrue(form.is_valid())
         form.save()
         self.assertEqual(type(Task.objects.get().is_done), date, msg=(
-            'After save is called, is_done should be a date.'))
+            'After the done button is pushed, is_done should be a date.'))
+
+        data = self.valid_data.copy()
+        data.update({'task': self.task.pk, 'toggle': 'value'})
+        form = TaskUpdateForm(data=data, user=self.user,
+                              task_list=self.task.task_list,
+                              instance=self.task)
+        self.assertTrue(form.is_valid())
+        form.save()
+        self.assertEqual(Task.objects.get().is_done, None, msg=(
+            'After the done button is pushed again, is_done should be None'
+            ' again.'))
