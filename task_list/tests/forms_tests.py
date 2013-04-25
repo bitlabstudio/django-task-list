@@ -1,10 +1,13 @@
 """Tests for the forms of the ``task_list`` app."""
+from datetime import date
+
 from django.test import TestCase
 
 from django_libs.tests.factories import UserFactory
 
 from ..forms import (
     TaskCreateForm,
+    TaskDoneToggleForm,
     TaskListCreateForm,
     TaskListUpdateForm,
     TaskUpdateForm,
@@ -42,6 +45,20 @@ class TaskCreateFormTestCase(TestCase):
                               task_list=self.task_list)
         self.assertFalse(form.is_valid(), msg=(
             'Without correct data, the form should not be valid.'))
+
+
+class TaskDoneToggleFormTestCase(TestCase):
+    """Test for the ``TaskDoneToggleForm`` form class."""
+    def setUp(self):
+        self.task = TaskFactory()
+        self.valid_data = {'task': self.task.pk}
+
+    def test_form(self):
+        form = TaskDoneToggleForm(data=self.valid_data)
+        self.assertTrue(form.is_valid(), msg='The form should be valid.')
+        form.save()
+        self.assertEqual(type(Task.objects.get().is_done), date, msg=(
+            'After save is called, is_done should be a date.'))
 
 
 class TaskListCreateFormTestCase(TestCase):

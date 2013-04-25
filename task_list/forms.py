@@ -1,5 +1,6 @@
 """Forms for the ``task_list`` app."""
 from django import forms
+from django.utils.timezone import now
 
 from .models import Task, TaskList
 
@@ -42,6 +43,22 @@ class TaskCreateForm(TaskFormMixin, forms.ModelForm):
     def save(self, *args, **kwargs):
         self.instance.task_list = self.task_list
         return super(TaskCreateForm, self).save(*args, **kwargs)
+
+
+class TaskDoneToggleForm(forms.Form):
+    """Form to toggle a tasks done status."""
+    task = forms.ModelChoiceField(
+        queryset=Task.objects.all(),
+    )
+
+    def save(self):
+        task = self.cleaned_data.get('task')
+        if task.is_done:
+            task.is_done = None
+        else:
+            task.is_done = now()
+        task.save()
+        return task
 
 
 class TaskListCreateForm(TaskFormMixin, forms.ModelForm):

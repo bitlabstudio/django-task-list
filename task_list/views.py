@@ -1,13 +1,20 @@
 """Views for the ``task_list`` app."""
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
-from django.http import Http404
+from django.http import Http404, HttpResponseRedirect
 from django.utils.decorators import method_decorator
-from django.views.generic import CreateView, DeleteView, ListView, UpdateView
+from django.views.generic import (
+    CreateView,
+    DeleteView,
+    FormView,
+    ListView,
+    UpdateView,
+)
 from django.shortcuts import get_object_or_404
 
 from .forms import (
     TaskCreateForm,
+    TaskDoneToggleForm,
     TaskListCreateForm,
     TaskListUpdateForm,
     TaskUpdateForm,
@@ -138,13 +145,34 @@ class TaskListUpdateView(TaskListCRUDViewMixin, PermissionMixin, UpdateView):
     template_name = 'task_list/task_list_update.html'
 
 
-class TaskListView(PermissionMixin, ListView):
-    """A view that lists all tasks of a task list."""
-    model = TaskList
+class TaskListView(FormView):
+    """
+    A view that lists all tasks of a task list and allows to toggle is_done.
+
+    """
+    model = Task
+    form_class = TaskDoneToggleForm
     template_name = 'task_list/task_list.html'
 
-    def get_queryset(self):
-        return self.task_list.tasks.all()
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        self.task_list = get_object_or_404(TaskList, pk=kwargs.get('pk'))
+        if not self.request.user in self.task_list.users.all():
+            raise Http404
+        return super(TaskListView, self).dispatch(
+            request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.save()
+        return HttpResponseRedirect(self.get_success_url())
+
+    def get_success_url(self):
+        return reverse('task_list', kwargs={'pk': self.task_list.pk})
+
+    def get_context_data(self, **kwargs):
+        ctx = super(TaskListView, self).get_context_data(**kwargs)
+        ctx.update({'task_list': self.task_list})
+        return ctx
 
 
 class TaskUpdateView(PermissionMixin, TaskCRUDViewMixin, UpdateView):

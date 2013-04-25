@@ -3,12 +3,21 @@
 
 {% block main %}
     <h1>{{ task_list.title }}</h2>
-    {% if object_list %}
-        <ul>
-            {% for task in object_list %}
-                <li><a href="{% url "task_update" pk=task.pk %}">{{ task.title }}</a></li>
+    {% if task_list.tasks.all %}
+        <table>
+            {% for task in task_list.tasks.all %}
+                <tr>
+                    <form action="." method="post">
+                        {% csrf_token %}
+                        <td><a href="{% url "task_update" pk=task.pk %}">{{ task.title }}</a></td>
+                        <td>
+                            <input type="submit" name="toggle" value="{% if task.is_done %}{% trans "mark undone" %}{% else %}{% trans "mark done" %}{% endif %}" />
+                            <input type="hidden" name="task" value="{{ task.pk }}"/>
+                        </td>
+                    </form>
+                <tr>
             {% endfor %}
-        </ul>
+        </table>
     {% else %}
         <p>{% trans "No task in this list yet. You can add one by clicking below." %}</p>
     {% endif %}
