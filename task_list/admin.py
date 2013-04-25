@@ -1,5 +1,6 @@
 """Custom model admins for the models of the ``task_list`` app."""
 from django.contrib import admin
+from django.utils.translation import ugettext_lazy as _
 
 from .models import (
     Category,
@@ -13,9 +14,12 @@ class TitleMixin(object):
     """Mixin to get titles of related objects."""
     def task_list_title(self, obj):
         return obj.task_list.title
+    task_list_title.short_description = _('Task list title')
 
     def category_title(self, obj):
-        return obj.category.title
+        if obj.category:
+            return obj.category.title
+    category_title.short_description = _('Category title')
 
 
 class CategoryAdmin(admin.ModelAdmin):
@@ -33,8 +37,8 @@ class TaskAdmin(TitleMixin, admin.ModelAdmin):
     """Custom admin for the ``Task`` model."""
     list_display = ('title', 'task_list_title', 'category_title', 'is_done',
                     'is_example')
-    search_fields = ['title', 'description', 'category_title',
-                     'task_list_title']
+    search_fields = ['title', 'description', 'category__title',
+                     'task_list__title']
 
 
 class TaskListAdmin(admin.ModelAdmin):
