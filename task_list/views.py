@@ -29,16 +29,13 @@ class LoginRequiredMixin(object):
 
 class TaskCRUDViewMixin(object):
     """Mixin to add common methods to the task CRUD views."""
-    pk_url_kwarg = 'task_pk'
-
     def get_form_kwargs(self):
         kwargs = super(TaskCRUDViewMixin, self).get_form_kwargs()
         kwargs.update({'user': self.request.user, 'task_list': self.task_list})
         return kwargs
 
     def get_success_url(self):
-        return reverse('task_update', kwargs={
-            'pk': self.task_list.pk, 'task_pk': self.object.pk})
+        return reverse('task_update', kwargs={'task_pk': self.object.pk})
 
 
 class TaskListCRUDViewMixin(object):
@@ -59,7 +56,11 @@ class PermissionMixin(object):
     """
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        self.task_list = get_object_or_404(TaskList, pk=kwargs.get('pk'))
+        if getattr(self, 'pk_url_kwarg', 'pk') == 'task_pk':
+            task = get_object_or_404(Task, pk=kwargs.get('task_pk'))
+            self.task_list = task.task_list
+        else:
+            self.task_list = get_object_or_404(TaskList, pk=kwargs.get('pk'))
         # since we allow to only add users to a task, that are on the task
         # list, the following check will also be secure for tasks
         if not self.request.user in self.task_list.users.all():
@@ -88,6 +89,7 @@ class TaskDeleteView(PermissionMixin, DeleteView):
     """View that lets the user delete a task."""
     model = Task
     template_name = 'task_list/task_delete.html'
+    pk_url_kwarg = 'task_pk'
 
     def get_success_url(self):
         return reverse('task_list', kwargs={'pk': self.task_list.pk})
@@ -138,3 +140,4 @@ class TaskUpdateView(PermissionMixin, TaskCRUDViewMixin, UpdateView):
     form_class = TaskUpdateForm
     model = Task
     template_name = 'task_list/task_update.html'
+    pk_url_kwarg = 'task_pk'

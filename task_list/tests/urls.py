@@ -14,7 +14,8 @@ admin.autodiscover()
 
 urlpatterns = patterns(
     '',
-    url(r'^$', lambda req: HttpResponse('Dummy home view'), name='dummy_home'),
+    url(r'^login/$', lambda req: HttpResponse('Dummy login'),
+        name='dummy_login'),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^', include('task_list.urls')),
 )

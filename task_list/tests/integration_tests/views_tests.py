@@ -25,7 +25,8 @@ class PatchedViewTestMixin(ViewTestMixin):
         """Custom method to overwrite the one from django_libs."""
         url = self.get_url()
         resp = self.client.get(url)
-        self.assertRedirects(resp, '{0}?next={1}'.format('/', url))
+        self.assertRedirects(resp, '{0}?next={1}'.format(
+            reverse('dummy_login'), url))
 
 
 # =====
@@ -78,7 +79,7 @@ class TaskDeleteViewTestCase(PatchedViewTestMixin, TestCase):
         return 'task_delete'
 
     def get_view_kwargs(self):
-        return {'pk': self.task.task_list.pk, 'task_pk': self.task.pk}
+        return {'task_pk': self.task.pk}
 
     def test_view(self):
         """Test for the ``TaskDeleteView`` view class."""
@@ -220,7 +221,7 @@ class TaskUpdateViewTestCase(PatchedViewTestMixin, TestCase):
         return 'task_update'
 
     def get_view_kwargs(self):
-        return {'pk': self.task.task_list.pk, 'task_pk': self.task.pk}
+        return {'task_pk': self.task.pk}
 
     def setUp(self):
         self.user = UserFactory()
