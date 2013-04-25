@@ -63,7 +63,7 @@ class TaskUpdateForm(TaskFormMixin, forms.ModelForm):
     # TODO change is_done widget to that button swith thing we discussed
     class Meta:
         model = Task
-        fields = ('title', 'description', 'attachment', 'category', 'priority',
+        fields = ('title', 'description', 'category', 'priority',
                   'due_date', 'assigned_to', 'is_done')
 
     def __init__(self, user, task_list, *args, **kwargs):

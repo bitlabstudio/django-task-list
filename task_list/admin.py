@@ -6,6 +6,7 @@ from .models import (
     Category,
     Parent,
     Task,
+    TaskAttachment,
     TaskList,
 )
 
@@ -35,10 +36,18 @@ class ParentAdmin(TitleMixin, admin.ModelAdmin):
 
 class TaskAdmin(TitleMixin, admin.ModelAdmin):
     """Custom admin for the ``Task`` model."""
-    list_display = ('title', 'task_list_title', 'category_title', 'is_done',
-                    'is_example')
+    list_display = ('title', 'task_list_title', 'category_title', 'is_done')
     search_fields = ['title', 'description', 'category__title',
                      'task_list__title']
+
+
+class TaskAttachmentAdmin(admin.ModelAdmin):
+    """Custom admin for the ``TaskAttachment`` model."""
+    list_display = ('task_title',)
+
+    def task_title(self, obj):
+        return obj.task.title
+    task_title.short_description = _('Task title')
 
 
 class TaskListAdmin(admin.ModelAdmin):
@@ -47,7 +56,8 @@ class TaskListAdmin(admin.ModelAdmin):
     search_fields = ['title']
 
 
-admin.site.register(TaskList, TaskListAdmin)
-admin.site.register(Task, TaskAdmin)
-admin.site.register(Parent, ParentAdmin)
 admin.site.register(Category, CategoryAdmin)
+admin.site.register(Parent, ParentAdmin)
+admin.site.register(Task, TaskAdmin)
+admin.site.register(TaskAttachment, TaskAttachmentAdmin)
+admin.site.register(TaskList, TaskListAdmin)

@@ -77,11 +77,6 @@ class Task(models.Model):
         related_name='tasks',
     )
 
-    attachment = FilerFileField(
-        verbose_name=_('Attachment'),
-        blank=True, null=True,
-    )
-
     category = models.ForeignKey(
         'task_list.Category',
         verbose_name=_('Category'),
@@ -102,11 +97,6 @@ class Task(models.Model):
     is_done = models.DateField(
         verbose_name=_('Is done'),
         blank=True, null=True,
-    )
-
-    is_example = models.BooleanField(
-        verbose_name=_('Is example'),
-        default=False,
     )
 
     priority = models.CharField(
@@ -132,6 +122,30 @@ class Task(models.Model):
 
     class Meta:
         ordering = ['due_date', 'priority', 'title']
+
+
+class TaskAttachment(models.Model):
+    """
+    Used to attach files to a tasks.
+
+    :file: Field that holds the file.
+    :task: The task the file is attached to.
+
+    """
+    file = FilerFileField(
+        verbose_name=_('Attachment'),
+        blank=True, null=True,
+    )
+
+    task = models.ForeignKey(
+        'task_list.Task',
+        verbose_name=_('Task'),
+        related_name='attachments',
+    )
+
+    def __unicode__(self):
+        # TODO do something here
+        return self.task.title
 
 
 class TaskList(models.Model):

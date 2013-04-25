@@ -4,6 +4,7 @@ from django.test import TestCase
 from .factories import (
     CategoryFactory,
     ParentFactory,
+    TaskAttachmentFactory,
     TaskFactory,
     TaskListFactory,
 )
@@ -37,6 +38,16 @@ class TaskTestCase(TestCase):
         """Test instantiation of the ``Task`` model."""
         task = TaskFactory()
         self.assertTrue(task.pk)
+
+
+class TaskAttachmentTestCase(TestCase):
+    """Tests for the ``TestAttachment``model class."""
+    longMessage = True
+
+    def test_instantiation(self):
+        """Test instantiation of the ``TaskAttachment`` model."""
+        attachment = TaskAttachmentFactory()
+        self.assertTrue(attachment.pk)
 
 
 class TaskListTestCase(TestCase):

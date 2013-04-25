@@ -5,6 +5,7 @@ from ..models import (
     Category,
     Parent,
     Task,
+    TaskAttachment,
     TaskList,
 )
 
@@ -23,6 +24,13 @@ class ParentFactory(factory.Factory):
     content_object = factory.SubFactory(
         'django_libs.tests.factories.UserFactory')
     task_list = factory.SubFactory('task_list.tests.factories.TaskListFactory')
+
+
+class TaskAttachmentFactory(factory.Factory):
+    """Factory for the ``TaskAttachment`` model."""
+    FACTORY_FOR = TaskAttachment
+
+    task = factory.SubFactory('task_list.tests.factories.TaskFactory')
 
 
 class TaskListFactory(factory.Factory):
