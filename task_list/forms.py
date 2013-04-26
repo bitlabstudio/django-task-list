@@ -37,12 +37,16 @@ class TaskCreateForm(TaskFormMixin, forms.ModelForm):
         fields = ('title',)
 
     def __init__(self, user, task_list, *args, **kwargs):
+        # add optional param ctype_pk
         self.task_list = task_list
         super(TaskCreateForm, self).__init__(user, *args, **kwargs)
 
     def save(self, *args, **kwargs):
         self.instance.task_list = self.task_list
-        return super(TaskCreateForm, self).save(*args, **kwargs)
+        instance = super(TaskCreateForm, self).save(*args, **kwargs)
+        # if self.ctype, create Parent instance and connect this task list
+        # to parent instance
+        return instance
 
 
 class TaskDoneToggleForm(forms.Form):

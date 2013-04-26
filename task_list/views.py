@@ -56,14 +56,16 @@ class TaskListCRUDViewMixin(object):
     """Mixin to add common methods to the task list CRUD views."""
     def get_form_kwargs(self):
         kwargs = super(TaskListCRUDViewMixin, self).get_form_kwargs()
+        # add ctype_pk if available
         kwargs.update({'user': self.request.user})
         return kwargs
 
     def get_success_url(self):
+        # if ctype_pk in self.kwargs, redirect to view version with ctype_pk
         return reverse('task_list_update', kwargs={'pk': self.object.pk})
 
 
-class PermissionMixin(GetObjectMixin):
+class PermissionMixin(object):
     """
     Adds a dispatch method that checks if the user is assigned to the object.
 
@@ -80,11 +82,16 @@ class PermissionMixin(GetObjectMixin):
         # list, the following check will also be secure for tasks
         if not self.request.user in self.task_list.users.all():
             raise Http404
+
+        # if ctype_pk in self.kwargs, get the content object and call
+        # content_object.task_list_has_permission(request) and raise 404
+        # if method returns false
         return super(PermissionMixin, self).dispatch(
             request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         ctx = super(PermissionMixin, self).get_context_data(**kwargs)
+        # if ctype_pk in self.kwargs, add ctype to context
         ctx.update({'task_list': self.task_list})
         return ctx
 

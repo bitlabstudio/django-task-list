@@ -1,5 +1,5 @@
 """Tests for the views of the ``task_list`` app."""
-from mock import Mock
+from mock import Mock, patch
 
 from django.core.urlresolvers import reverse
 from django.test import TestCase
@@ -48,18 +48,14 @@ class TaskCreateViewTestCase(PatchedViewTestMixin, TestCase):
         self.user = UserFactory()
         self.task_list = TaskListFactory()
         self.task_list.users.add(self.user)
-        self.old_is_valid = TaskCreateForm.is_valid
-        self.old_save = TaskCreateForm.save
-        TaskCreateForm.is_valid = Mock(return_value=True)
-        false_list = Mock(pk=1)
-        TaskCreateForm.save = Mock(return_value=false_list)
 
-    def tearDown(self):
-        TaskCreateForm.is_valid = self.old_is_valid
-        TaskCreateForm.save = self.old_save
-
-    def test_view(self):
+    @patch.object(TaskCreateForm, 'is_valid')
+    @patch.object(TaskCreateForm, 'save')
+    def test_view(self, save_mock, is_valid_mock):
         """Test for the ``TaskCreateView`` view class."""
+        is_valid_mock.return_value = True
+        save_mock.return_value = Mock(pk=1)
+
         self.should_redirect_to_login_when_anonymous()
         self.should_be_callable_when_authenticated(self.user)
         self.is_callable(method='post', data={})
