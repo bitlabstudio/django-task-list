@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block main %}
+    <h1>{% trans "Update template" %}</h1>
+    <form method="post" action=".">
+        {% csrf_token %}
+        <p>{% trans "Please enter a title for your template." %}</p>
+        {{ form.non_field_errors }}
+        {% for field in form %}
+            {% include "task_list/partials/simple_form_field.html" %}
+        {% endfor %}
+        <input type="submit" value="{% trans "Submit" %}" />
+        <a href="{% url "task_list_list" %}">{% trans "Back to task lists" %}</a>
+        <input type="hidden" name="next" value="{{ next }}">
+    </form>
+{% endblock %}

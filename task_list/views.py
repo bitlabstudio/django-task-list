@@ -18,6 +18,7 @@ from .forms import (
     TaskListCreateForm,
     TaskListUpdateForm,
     TaskUpdateForm,
+    TemplateForm,
 )
 from .models import Task, TaskList
 
@@ -25,12 +26,6 @@ from .models import Task, TaskList
 # ======
 # Mixins
 # ======
-
-class GetObjectMixin(object):
-    """Adds a get_object method to the inheriting view."""
-    def get_object(self, **kwargs):
-        if self.model:
-            return get_object_or_404(self.model, pk=self.kwargs.get('pk'))
 
 
 class LoginRequiredMixin(object):
@@ -49,7 +44,7 @@ class TaskCRUDViewMixin(object):
         return kwargs
 
     def get_success_url(self):
-        return reverse('task_update', kwargs={'pk': self.object.pk})
+        return reverse('task_list', kwargs={'pk': self.object.task_list.pk})
 
 
 class TaskListCRUDViewMixin(object):
@@ -119,12 +114,46 @@ class TaskDeleteView(PermissionMixin, DeleteView):
         return reverse('task_list', kwargs={'pk': self.task_list.pk})
 
 
+class TaskDoneToggleView(PermissionMixin, FormView):
+    """A view to toggle a tasks done state."""
+    form_class = TaskDoneToggleForm
+    template_name = 'task_list/task_form.html'
+
+    def form_invalid(self, form):
+        """
+        This should never occur. It is merely to be sure, we never get stuck
+        on this view. So we redirect back to the success url, which in any
+        case should be the next parameter.
+
+        """
+        return HttpResponseRedirect(self.get_success_url())
+
+    def form_valid(self, form):
+        form.save()
+        return HttpResponseRedirect(self.get_success_url())
+
+    def get_object(self, querset=None):
+        return get_object_or_404(Task, pk=self.kwargs.get('pk'))
+
+    def get_success_url(self):
+        next = self.request.POST.get('next')
+        if next:
+            return next
+        return reverse('task_list_list')
+
+
 class TaskListCreateView(LoginRequiredMixin, TaskListCRUDViewMixin,
                          CreateView):
     """View to create new task lists."""
     form_class = TaskListCreateForm
     model = TaskList
     template_name = 'task_list/task_list_create.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super(TaskListCreateView, self).get_context_data(**kwargs)
+        ctx.update({'templates': TaskList.objects.filter(
+            users=self.request.user, is_template=True)})
+        return ctx
 
 
 class TaskListDeleteView(PermissionMixin, DeleteView):
@@ -142,7 +171,8 @@ class TaskListListView(LoginRequiredMixin, ListView):
     template_name = 'task_list/task_list_list.html'
 
     def get_queryset(self):
-        return TaskList.objects.filter(users__pk=self.request.user.pk)
+        return TaskList.objects.filter(users__pk=self.request.user.pk,
+                                       is_template=False)
 
 
 class TaskListUpdateView(TaskListCRUDViewMixin, PermissionMixin, UpdateView):
@@ -151,30 +181,30 @@ class TaskListUpdateView(TaskListCRUDViewMixin, PermissionMixin, UpdateView):
     model = TaskList
     template_name = 'task_list/task_list_update.html'
 
+    def get_success_url(self):
+        # if ctype_pk in self.kwargs, redirect to view version with ctype_pk
+        return reverse('task_list_list')
 
-class TaskListView(FormView):
+
+class TaskListView(ListView):
     """
     A view that lists all tasks of a task list and allows to toggle is_done.
 
     """
     model = Task
-    form_class = TaskDoneToggleForm
     template_name = 'task_list/task_list.html'
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         self.task_list = get_object_or_404(TaskList, pk=kwargs.get('pk'))
-        if not self.request.user in self.task_list.users.all():
+        if not self.request.user in self.task_list.users.all() or (
+                self.task_list.is_template):
             raise Http404
         return super(TaskListView, self).dispatch(
             request, *args, **kwargs)
 
-    def form_valid(self, form):
-        form.save()
-        return HttpResponseRedirect(self.get_success_url())
-
-    def get_success_url(self):
-        return reverse('task_list', kwargs={'pk': self.task_list.pk})
+    def get_queryset(self):
+        return Task.objects.filter(task_list=self.task_list)
 
     def get_context_data(self, **kwargs):
         ctx = super(TaskListView, self).get_context_data(**kwargs)
@@ -187,3 +217,23 @@ class TaskUpdateView(PermissionMixin, TaskCRUDViewMixin, UpdateView):
     form_class = TaskUpdateForm
     model = Task
     template_name = 'task_list/task_update.html'
+
+
+class TemplateUpdateView(TaskListCRUDViewMixin, PermissionMixin, UpdateView):
+    """View to manage a task list, that is marked as template."""
+    form_class = TemplateForm
+    model = TaskList
+    template_name = 'task_list/template_form.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super(TemplateUpdateView, self).get_context_data(**kwargs)
+        ctx.update({
+            'next': self.request.GET.get('next') or self.request.POST.get(
+                'next')})
+        return ctx
+
+    def get_success_url(self):
+        next = self.request.POST.get('next')
+        if next:
+            return next
+        return reverse('template_update', kwargs={'pk': self.object.pk})

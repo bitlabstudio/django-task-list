@@ -60,12 +60,10 @@ class Task(models.Model):
     Holds all information about the actual task.
 
     :assigned_to: Can point to one or more users, assigned to this task.
-    :attachment: A file attachment.
     :category: The ``Category`` this task belongs to.
     :description: A further description about the task.
     :due_date: Lets the user choose a due date for this task.
     :is_done: If the task is done, this holds the datetime, else it is None.
-    :is_example: Is True if this task was generated as pre-filled example.
     :priority: Lets the user choose a priority level for this task.
     :task_list: The ``TaskList`` this task belongs to.
     :title: The title of the task.

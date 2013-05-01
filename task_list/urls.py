@@ -4,12 +4,14 @@ from django.conf.urls.defaults import patterns, url
 from .views import (
     TaskCreateView,
     TaskDeleteView,
+    TaskDoneToggleView,
     TaskListCreateView,
     TaskListDeleteView,
     TaskListListView,
     TaskListUpdateView,
     TaskListView,
     TaskUpdateView,
+    TemplateUpdateView,
 )
 
 
@@ -25,6 +27,10 @@ urlpatterns = patterns(
     url(r'^(?P<pk>\d+)/delete/$', TaskListDeleteView.as_view(),
         name='task_list_delete'),
 
+    # template urls
+    url(r'^template/(?P<pk>\d+)/$', TemplateUpdateView.as_view(),
+        name='template_update'),
+
     # /tasks/ctype/15/object/1/... same urls as above
 
     # task urls
@@ -33,6 +39,9 @@ urlpatterns = patterns(
         name='task_list'),
     url(r'^(?P<pk>\d+)/create/$', TaskCreateView.as_view(),
         name='task_create'),
+    url(r'^task/(?P<pk>\d+)/toggle/$',
+        TaskDoneToggleView.as_view(),
+        name='task_toggle'),
     url(r'^task/(?P<pk>\d+)/update/$',
         TaskUpdateView.as_view(),
         name='task_update'),

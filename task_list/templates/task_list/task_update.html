@@ -3,6 +3,14 @@
 
 {% block main %}
     <h1>{% trans "Update task" %}</h1>
+    <form method="post" action="{% url "task_toggle" pk=task.pk%}">
+        <div>
+            {% csrf_token %}
+            <input type="submit" name="toggle" value="{% if task.is_done %}{% trans "mark undone" %}{% else %}{% trans "mark done" %}{% endif %}" />
+            <input type="hidden" name="task" value="{{ task.pk }}"/>
+            <input type="hidden" name="next" value="{{ request.path }}"/>
+        </div>
+    </form>
     <form method="post" action=".">
         {% csrf_token %}
         {{ form.non_field_errors }}
@@ -10,11 +18,8 @@
         {% for field in form %}
             {% include "task_list/partials/simple_form_field.html" %}
         {% endfor %}
-        <div>
-            <input type="submit" name="toggle" value="{% if task.is_done %}{% trans "mark undone" %}{% else %}{% trans "mark done" %}{% endif %}" />
-            <input type="hidden" name="task" value="{{ task.pk }}"/>
-        </div>
         <input type="submit" value="{% trans "Submit" %}" />
+        <a href="{% url "task_delete" pk=form.instance.pk %}">{% trans "delete task" %}</a>
         <a href="{% url "task_list" pk=task_list.pk %}">{% trans "back to tasks" %}</a>
     </form>
 {% endblock %}

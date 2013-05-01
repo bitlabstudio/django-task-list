@@ -10,8 +10,12 @@
         {% for field in form %}
             {% include "task_list/partials/simple_form_field.html" %}
         {% endfor %}
-        <input type="submit" value="{% trans "Submit" %}" />
+        <input type="submit" value="{% trans "Save list" %}" />
         <a href="{% url "task_list_delete" pk=object.pk %}">{% trans "Delete list" %}</a>
         <a href="{% url "task_list_list" %}">{% trans "Back to index" %}</a>
+    </form>
+    <form method="get" action="{% url "template_update" pk=task_list.pk %}">
+        <input type="submit" value="{% trans "Save as template" %}" />
+        <input type="hidden" name="next" value="{{ request.path }}"/>
     </form>
 {% endblock %}
