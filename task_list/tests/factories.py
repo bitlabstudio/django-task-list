@@ -8,6 +8,15 @@ from ..models import (
     TaskAttachment,
     TaskList,
 )
+from .test_app.models import DummyModel
+
+
+class DummyModelFactory(factory.Factory):
+    """Factory for the ``DummyModel`` model."""
+    FACTORY_FOR = DummyModel
+
+    user = factory.SubFactory('django_libs.tests.factories.UserFactory')
+    dummy_field = factory.Sequence(lambda n: 'dummy {0}'.format(n))
 
 
 class CategoryFactory(factory.Factory):
@@ -22,7 +31,7 @@ class ParentFactory(factory.Factory):
     FACTORY_FOR = Parent
 
     content_object = factory.SubFactory(
-        'django_libs.tests.factories.UserFactory')
+        'task_list.tests.factories.DummyModelFactory')
     task_list = factory.SubFactory('task_list.tests.factories.TaskListFactory')
 
 

@@ -58,6 +58,7 @@ EXTERNAL_APPS = [
 
 INTERNAL_APPS = [
     'task_list',
+    'task_list.tests.test_app',
 ]
 
 TEST_APPS = [
