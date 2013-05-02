@@ -11,7 +11,7 @@
                         {% csrf_token %}
                         <td><a href="{% url "task_update" pk=task.pk %}">{{ task.title }}</a></td>
                         <td>
-                            <input type="submit" name="toggle" value="{% if task.is_done %}{% trans "mark undone" %}{% else %}{% trans "mark done" %}{% endif %}" />
+                            <input type="submit" name="toggle" value="{% if task.is_done %}{% trans "Mark undone" %}{% else %}{% trans "Mark done" %}{% endif %}" />
                             <input type="hidden" name="task" value="{{ task.pk }}"/>
                             <input type="hidden" name="next" value="{{ request.path }}"/>
                         </td>
@@ -23,5 +23,5 @@
         <p>{% trans "No task in this list yet. You can add one by clicking below." %}</p>
     {% endif %}
     <a href="{% url "task_create" pk=task_list.pk %}">{% trans "Add new task" %}</a>
-    <a href="{% url "task_list_list" %}">{% trans "back to all lists" %}</a>
+    <a href="{% url "task_list_list" %}">{% trans "Back to all lists" %}</a>
 {% endblock %}

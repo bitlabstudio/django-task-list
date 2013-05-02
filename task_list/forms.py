@@ -1,6 +1,4 @@
 """Forms for the ``task_list`` app."""
-from copy import deepcopy
-
 from django import forms
 from django.contrib.auth.models import User
 from django.utils.timezone import now
@@ -89,27 +87,12 @@ class TaskListCreateForm(TaskFormMixin, forms.ModelForm):
     def save(self, *args, **kwargs):
         template = self.cleaned_data.get('template')
 
-        # if no template is given, we just save a new task list
-        if not template:
-            return super(TaskListCreateForm, self).save(*args, **kwargs)
+        # if a template is given, the instance is created from it
+        if template:
+            self.instance = TaskList.objects.create_from_template(
+                template, self.cleaned_data.get('title'), self.user)
 
-        # if a template is given, we copy it to be the instance
-
-        # copy the template
-        title = self.cleaned_data['title']
-        self.instance = deepcopy(template)
-        self.instance.id = None
-        self.instance.is_template = False
-        self.instance.title = title
-        self.instance.save()
-        # copy all tasks
-        self.instance.users.add(self.user)
-        for task in template.tasks.all():
-            new_task = deepcopy(task)
-            new_task.id = None
-            new_task.task_list = self.instance
-            new_task.save()
-        return self.instance
+        return super(TaskListCreateForm, self).save(*args, **kwargs)
 
 
 class TaskListUpdateForm(TaskFormMixin, forms.ModelForm):
@@ -147,7 +130,7 @@ class TemplateForm(forms.ModelForm):
         self.user = user
         super(TemplateForm, self).__init__(*args, **kwargs)
 
-    def clean(self):
+    def clean_title(self):
         cleaned_data = super(TemplateForm, self).clean()
         title = cleaned_data.get('title')
         if title and TaskList.objects.filter(
@@ -160,25 +143,5 @@ class TemplateForm(forms.ModelForm):
         # if the instance is a template already, we just update it
         if self.instance.is_template:
             return super(TemplateForm, self).save(*args, **kwargs)
-
-        # if the instance is no template, we create a new one and leave the
-        # instance untouched
-
-        # copy the instance
-        new_task_list = deepcopy(self.instance)
-        new_task_list.id = None
-        new_task_list.is_template = True
-        new_task_list.save()
-        # clear users and set the request user only
-        new_task_list.users.clear()
-        new_task_list.users.add(self.user)
-        # copy all tasks
-        for task in self.instance.tasks.all():
-            new_task = deepcopy(task)
-            new_task.id = None
-            new_task.is_done = None
-            new_task.due_date = None
-            new_task.task_list = new_task_list
-            new_task.save()
-            new_task.assigned_to.clear()
-        return new_task_list
+        return TaskList.objects.create_template_from_task_list(self.instance,
+                                                               self.user)

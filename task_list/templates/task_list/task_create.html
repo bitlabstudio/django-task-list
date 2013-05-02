@@ -11,6 +11,6 @@
             {% include "task_list/partials/simple_form_field.html" %}
         {% endfor %}
         <input type="submit" value="{% trans "Submit" %}" />
-        <a href="{% url "task_list" pk=task_list.pk %}">{% trans "back to tasks" %}</a>
+        <a href="{% url "task_list" pk=task_list.pk %}">{% trans "Back to tasks" %}</a>
     </form>
 {% endblock %}
