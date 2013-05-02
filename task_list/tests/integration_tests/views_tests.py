@@ -123,18 +123,14 @@ class TaskListCreateViewTestCase(PatchedViewTestMixin, TestCase):
 
     def setUp(self):
         self.user = UserFactory()
-        self.old_is_valid = TaskListCreateForm.is_valid
-        self.old_save = TaskListCreateForm.save
-        TaskListCreateForm.is_valid = Mock(return_value=True)
-        false_list = Mock(pk=1)
-        TaskListCreateForm.save = Mock(return_value=false_list)
 
-    def tearDown(self):
-        TaskListCreateForm.is_valid = self.old_is_valid
-        TaskListCreateForm.save = self.old_save
-
-    def test_view(self):
+    @patch.object(TaskListCreateForm, 'is_valid')
+    @patch.object(TaskListCreateForm, 'save')
+    def test_view(self, save_mock, is_valid_mock):
         """Test for the ``TaskListCreateView`` view class."""
+        save_mock.return_value = Mock(pk=1)
+        is_valid_mock.return_value = True
+
         self.should_redirect_to_login_when_anonymous()
         self.should_be_callable_when_authenticated(self.user)
         self.is_callable(method='post', data={})
@@ -196,18 +192,14 @@ class TaskListUpdateViewTestCase(PatchedViewTestMixin, TestCase):
         self.user = UserFactory()
         self.task_list = TaskListFactory()
         self.task_list.users.add(self.user)
-        self.old_is_valid = TaskListUpdateForm.is_valid
-        self.old_save = TaskListUpdateForm.save
-        TaskListUpdateForm.is_valid = Mock(return_value=True)
-        false_list = Mock(pk=1)
-        TaskListUpdateForm.save = Mock(return_value=false_list)
 
-    def tearDown(self):
-        TaskListUpdateForm.is_valid = self.old_is_valid
-        TaskListUpdateForm.save = self.old_save
-
-    def test_view(self):
+    @patch.object(TaskListUpdateForm, 'is_valid')
+    @patch.object(TaskListUpdateForm, 'save')
+    def test_view(self, save_mock, is_valid_mock):
         """Test for the ``TaskListUpdateView`` view class."""
+        save_mock.return_value = Mock(pk=1)
+        is_valid_mock.return_value = True
+
         self.should_redirect_to_login_when_anonymous()
         self.should_be_callable_when_authenticated(self.user)
         self.is_callable(method='post', data={})
