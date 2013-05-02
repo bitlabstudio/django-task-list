@@ -206,12 +206,15 @@ class TaskUpdateFormTestCase(TestCase):
 
 class TemplateFormTestCase(TestCase):
     """Tests for the ``TemplateForm`` form class."""
+    longMessage = True
 
     def setUp(self):
-        self.task_list = TaskListFactory()
-        self.task = TaskFactory(task_list=self.task_list)
         self.user = UserFactory()
+        self.task_list = TaskListFactory(title='title')
         self.task_list.users.add(self.user)
+        self.task = TaskFactory(task_list=self.task_list)
+        self.existing_template = TaskListFactory(is_template=True, title='bar')
+        self.existing_template.users.add(self.user)
         self.valid_data = {'title': 'my title'}
 
     def test_form(self):
@@ -220,15 +223,15 @@ class TemplateFormTestCase(TestCase):
         self.assertTrue(form.is_valid(), msg=(
             'With correct data, the form should be valid.'))
         instance = form.save()
-        self.assertEqual(TaskList.objects.all().count(), 2, msg=(
-            'After the list is saved as a template, there should be 2 task'
+        self.assertEqual(TaskList.objects.all().count(), 3, msg=(
+            'After the list is saved as a template, there should be 3 task'
             ' lists in the db.'))
         self.assertEqual(Task.objects.all().count(), 2, msg=(
             'After the list is saved as a template, there should be 2 tasks'
             ' in the db.'))
 
         bad_data = self.valid_data.copy()
-        bad_data.update({'title': instance.title})
+        bad_data.update({'title': self.existing_template.title})
         form = TemplateForm(data=bad_data, user=self.user,
                             instance=instance)
         self.assertFalse(form.is_valid(), msg=(
@@ -240,8 +243,8 @@ class TemplateFormTestCase(TestCase):
         self.assertTrue(form.is_valid(), msg=(
             'With correct data, the form should be valid.'))
         form.save()
-        self.assertEqual(TaskList.objects.all().count(), 2, msg=(
-            'After template is saved again, there should still be 2 task'
+        self.assertEqual(TaskList.objects.all().count(), 3, msg=(
+            'After template is saved again, there should still be 3 task'
             ' lists in the db.'))
         self.assertEqual(Task.objects.all().count(), 2, msg=(
             'After the template is saved again, there should still be 2 tasks'

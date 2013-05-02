@@ -219,6 +219,28 @@ class TaskUpdateView(PermissionMixin, TaskCRUDViewMixin, UpdateView):
     template_name = 'task_list/task_update.html'
 
 
+class TemplateDeleteView(PermissionMixin, DeleteView):
+    """View to let users delete a template."""
+    model = TaskList
+    template_name = 'task_list/template_delete.html'
+
+    def get_success_url(self):
+        return reverse('template_list')
+
+
+class TemplateListView(LoginRequiredMixin, ListView):
+    """
+    View to list all TaskList objects marked as template for the current user.
+
+    """
+    model = TaskList
+    template_name = 'task_list/template_list.html'
+
+    def get_queryset(self):
+        return TaskList.objects.filter(users__pk=self.request.user.pk,
+                                       is_template=True)
+
+
 class TemplateUpdateView(TaskListCRUDViewMixin, PermissionMixin, UpdateView):
     """View to manage a task list, that is marked as template."""
     form_class = TemplateForm
@@ -227,9 +249,9 @@ class TemplateUpdateView(TaskListCRUDViewMixin, PermissionMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         ctx = super(TemplateUpdateView, self).get_context_data(**kwargs)
-        ctx.update({
-            'next': self.request.GET.get('next') or self.request.POST.get(
-                'next')})
+        next = self.request.GET.get('next') or self.request.POST.get('next')
+        if next:
+            ctx.update({'next': next})
         return ctx
 
     def get_success_url(self):

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block main %}
+    <h1>{% trans "All of your templates" %}</h2>
+    {% if object_list %}
+        <ul>
+            {% for template in object_list %}
+                <li>
+                    <a href="{% url "template_update" pk=template.pk %}">{{ template.title }}</a>
+                    (<a href="{% url "template_delete" pk=template.pk %}">{% trans "Delete" %}</a>)
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>{% trans "You have not saved any task lists as template." %}</p>
+    {% endif %}
+    <a href="{% url "task_list_list" %}">{% trans "Back to task lists" %}</a>
+{% endblock %}

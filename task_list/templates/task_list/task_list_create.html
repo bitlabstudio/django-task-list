@@ -3,13 +3,15 @@
 
 {% block main %}
     <h1>{% trans "Create task list" %}</h1>
+    <p>{% trans "Please enter a title for your task list." %}</p>
+    <p>{% trans "You may optionally set a template to copy your tasks from." %}</p>
     <form method="post" action=".">
         {% csrf_token %}
-        <p>{% trans "Please enter a title for your task list." %}</p>
         {{ form.non_field_errors }}
         {% for field in form %}
             {% include "task_list/partials/simple_form_field.html" %}
         {% endfor %}
         <input type="submit" value="{% trans "Create list" %}" />
         <a href="{% url "task_list_list" %}">{% trans "Back to index" %}</a>
+    </form>
 {% endblock %}

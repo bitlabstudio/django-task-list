@@ -16,4 +16,5 @@
         <p>{% trans "No task lists yet. You can add one by clicking below." %}</p>
     {% endif %}
     <a href="{% url "task_list_create" %}">{% trans "Add new task list" %}</a>
+    <a href="{% url "template_list" %}">{% trans "Edit templates" %}</a>
 {% endblock %}

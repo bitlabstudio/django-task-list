@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load url from future %}
+
+{% block main %}
+<h1>{% trans "Delete template?" %}</h1>
+<p>
+{% blocktrans with object.title as title%}
+    This will delete the template "{{ title }}".
+{% endblocktrans %}
+</p>
+<form method="post" action=".">
+    {% csrf_token %}
+    <input type="submit" value="{% trans "Confirm deletion" %}" />
+    {% if next %}
+        <input type="hidden" name="next" value="{{ next }}" />
+        <a href="{{ next }}">{% trans "or cancel" %}</a>
+    {% else %}
+        <a href="{% url "template_list" %}">{% trans "or cancel" %}</a>
+    {% endif %}
+</form>
+{% endblock %}

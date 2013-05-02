@@ -131,13 +131,18 @@ class TemplateForm(forms.ModelForm):
         super(TemplateForm, self).__init__(*args, **kwargs)
 
     def clean_title(self):
-        cleaned_data = super(TemplateForm, self).clean()
-        title = cleaned_data.get('title')
-        if title and TaskList.objects.filter(
-                users=self.user, is_template=True, title=title).exists():
-            raise forms.ValidationError(_(
-                'You have already created a template with this name.'))
-        return cleaned_data
+        data = self.data.get('title')
+        if data:
+            try:
+                matching_list = TaskList.objects.get(
+                    users=self.user, is_template=True, title=data)
+            except:
+                pass
+            else:
+                if not self.instance.pk == matching_list.pk:
+                    raise forms.ValidationError(_(
+                        'You have already created a template with this name.'))
+        return data
 
     def save(self, *args, **kwargs):
         # if the instance is a template already, we just update it

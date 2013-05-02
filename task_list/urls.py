@@ -11,6 +11,8 @@ from .views import (
     TaskListUpdateView,
     TaskListView,
     TaskUpdateView,
+    TemplateDeleteView,
+    TemplateListView,
     TemplateUpdateView,
 )
 
@@ -28,8 +30,12 @@ urlpatterns = patterns(
         name='task_list_delete'),
 
     # template urls
+    url(r'^templates/$', TemplateListView.as_view(),
+        name='template_list'),
     url(r'^template/(?P<pk>\d+)/$', TemplateUpdateView.as_view(),
         name='template_update'),
+    url(r'^template/(?P<pk>\d+)/delete/$', TemplateDeleteView.as_view(),
+        name='template_delete'),
 
     # /tasks/ctype/15/object/1/... same urls as above
 

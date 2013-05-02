@@ -264,6 +264,46 @@ class TaskUpdateViewTestCase(PatchedViewTestMixin, TestCase):
         self.is_not_callable(user=UserFactory())
 
 
+class TemplateDeleteViewTestCase(PatchedViewTestMixin, TestCase):
+    """Tests or the ``TemplateDeleteView`` view class."""
+    longMessage = True
+
+    def setUp(self):
+        self.user = UserFactory()
+        self.template = TaskListFactory(is_template=True)
+        self.template.users.add(self.user)
+
+    def get_view_name(self):
+        return 'template_delete'
+
+    def get_view_kwargs(self):
+        return {'pk': self.template.pk}
+
+    def test_view(self):
+        """Test for the ``TemplateDeleteView`` view class."""
+        self.should_redirect_to_login_when_anonymous()
+        self.should_be_callable_when_authenticated(self.user)
+        self.is_not_callable(user=UserFactory(), message=(
+            'The view should not be callable by other users.'))
+        self.is_callable(user=self.user, method='post', data={},
+                         and_redirects_to=reverse('template_list'))
+
+
+class TemplateListViewTestCase(PatchedViewTestMixin, TestCase):
+    """Tests for the ``TemplateListView`` view class."""
+    longMessage = True
+
+    def get_view_name(self):
+        return 'template_list'
+
+    def setUp(self):
+        self.user = UserFactory()
+
+    def test_view(self):
+        self.should_redirect_to_login_when_anonymous()
+        self.should_be_callable_when_authenticated(self.user)
+
+
 class TemplateUpdateViewTestCase(PatchedViewTestMixin, TestCase):
     """Tests for the ``TemplateUpdateView`` view class."""
     longMessage = True
@@ -288,8 +328,10 @@ class TemplateUpdateViewTestCase(PatchedViewTestMixin, TestCase):
 
         self.should_redirect_to_login_when_anonymous()
         self.should_be_callable_when_authenticated(self.user)
-        self.is_callable(method='post', data={'next': 'foo'}, message=(
+        self.is_callable(data={'next': 'foo'}, message=(
             'If called with a next parameter, the view should be callable.'))
+        self.is_callable(method='post', data={'next': 'foo'}, message=(
+            'If posted with a next parameter, the view should be callable.'))
         self.is_callable(method='post', data={})
         self.is_not_callable(user=UserFactory(), message=(
             'The view should not be callable by other users.'))
