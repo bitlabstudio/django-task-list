@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n task_list_tags %}
 
 {% block main %}
     <h1>{% trans "All of your templates" %}</h2>
@@ -7,13 +7,13 @@
         <ul>
             {% for template in object_list %}
                 <li>
-                    <a href="{% url "template_update" pk=template.pk %}">{{ template.title }}</a>
-                    (<a href="{% url "template_delete" pk=template.pk %}">{% trans "Delete" %}</a>)
+                    <a href="{% get_ctype_url "template_update" pk=template.pk ctype_pk=ctype_pk obj_pk=obj_pk %}">{{ template.title }}</a>
+                    (<a href="{% get_ctype_url "template_delete" pk=template.pk ctype_pk=ctype_pk obj_pk=obj_pk %}">{% trans "Delete" %}</a>)
                 </li>
             {% endfor %}
         </ul>
     {% else %}
         <p>{% trans "You have not saved any task lists as template." %}</p>
     {% endif %}
-    <a href="{% url "task_list_list" %}">{% trans "Back to task lists" %}</a>
+    <a href="{% get_ctype_url "task_list_list" ctype_pk=ctype_pk obj_pk=obj_pk %}">{% trans "Back to task lists" %}</a>
 {% endblock %}

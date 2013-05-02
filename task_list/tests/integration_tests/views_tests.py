@@ -2,6 +2,7 @@
 from mock import Mock, patch
 
 from django.core.urlresolvers import reverse
+from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 
 from django_libs.tests.factories import UserFactory
@@ -14,7 +15,13 @@ from ...forms import (
     TaskUpdateForm,
     TemplateForm,
 )
-from ..factories import TaskFactory, TaskListFactory
+from ..factories import (
+    DummyModelFactory,
+    ParentFactory,
+    TaskFactory,
+    TaskListFactory,
+)
+from ..test_app.models import DummyModel
 
 
 # ======
@@ -43,12 +50,16 @@ class TaskCreateViewTestCase(PatchedViewTestMixin, TestCase):
         return 'task_create'
 
     def get_view_kwargs(self):
-        return {'pk': self.task_list.pk}
+        return {'task_list_pk': self.task_list.pk,
+                'ctype_pk': self.parent.content_type.pk,
+                'obj_pk': self.parent.object_id}
 
     def setUp(self):
         self.user = UserFactory()
         self.task_list = TaskListFactory()
         self.task_list.users.add(self.user)
+        self.parent = ParentFactory(task_list=self.task_list,
+                                    content_object__user=self.user)
 
     @patch.object(TaskCreateForm, 'is_valid')
     @patch.object(TaskCreateForm, 'save')
@@ -86,7 +97,7 @@ class TaskDeleteViewTestCase(PatchedViewTestMixin, TestCase):
             'The view should not be callable by other users.'))
         self.is_callable(user=self.user, method='post', data={},
                          and_redirects_to=reverse('task_list', kwargs={
-                             'pk': self.task.task_list.pk}))
+                             'task_list_pk': self.task.task_list.pk}))
 
 
 class TaskDoneToggleViewTestCase(PatchedViewTestMixin, TestCase):
@@ -121,8 +132,13 @@ class TaskListCreateViewTestCase(PatchedViewTestMixin, TestCase):
     def get_view_name(self):
         return 'task_list_create'
 
+    def get_view_kwargs(self):
+        return {'ctype_pk': self.ctype_pk, 'obj_pk': self.obj_pk}
+
     def setUp(self):
         self.user = UserFactory()
+        self.ctype_pk = ContentType.objects.get_for_model(DummyModel).pk
+        self.obj_pk = DummyModelFactory(user=self.user).pk
 
     @patch.object(TaskListCreateForm, 'is_valid')
     @patch.object(TaskListCreateForm, 'save')
@@ -169,13 +185,19 @@ class TaskListListViewTestCase(PatchedViewTestMixin, TestCase):
         self.user = UserFactory()
         self.task_list = TaskListFactory()
         self.task_list.users.add(self.user)
+        self.ctype_pk = ContentType.objects.get_for_model(DummyModel).pk
+        self.obj_pk = DummyModelFactory(user=self.user).pk
 
     def get_view_name(self):
         return 'task_list_list'
 
+    def get_view_kwargs(self):
+        return {'ctype_pk': self.ctype_pk, 'obj_pk': self.obj_pk}
+
     def test_view(self):
         self.should_redirect_to_login_when_anonymous()
         self.should_be_callable_when_authenticated(self.user)
+        self.is_callable(kwargs={'ctype_pk': 999, 'obj_pk': 1234})
 
 
 class TaskListUpdateViewTestCase(PatchedViewTestMixin, TestCase):
@@ -215,7 +237,7 @@ class TaskListViewTestCase(PatchedViewTestMixin, TestCase):
         return 'task_list'
 
     def get_view_kwargs(self):
-        return {'pk': self.task.task_list.pk}
+        return {'task_list_pk': self.task.task_list.pk}
 
     def setUp(self):
         self.user = UserFactory()

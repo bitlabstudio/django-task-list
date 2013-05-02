@@ -1,6 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
-{% load url from future %}
+{% load i18n task_list_tags %}
 
 {% block main %}
 <h1>{% trans "Delete task list?" %}</h1>
@@ -12,6 +11,6 @@
 <form method="post" action=".">
     {% csrf_token %}
     <input type="submit" value="{% trans "Confirm deletion" %}" />
-    <a href="{% url "task_list_update" pk=object.pk %}">{% trans "or cancel" %}</a>
+    <a href="{% get_ctype_url "task_list_update" ctype_pk=ctype_pk obj_pk=obj_pk pk=object.pk %}">{% trans "or cancel" %}</a>
 </form>
 {% endblock %}

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n task_list_tags %}
 
 {% block main %}
     <h1>{% trans "Update template" %}</h1>
@@ -11,7 +11,7 @@
             {% include "task_list/partials/simple_form_field.html" %}
         {% endfor %}
         <input type="submit" value="{% trans "Submit" %}" />
-        <a href="{% url "task_list_list" %}">{% trans "Back to task lists" %}</a>
+        <a href="{% get_ctype_url "task_list_list" ctype_pk=ctype_pk obj_pk=obj_pk %}">{% trans "Back to task lists" %}</a>
         <input type="hidden" name="next" value="{{ next }}">
     </form>
 {% endblock %}

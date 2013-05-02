@@ -1,5 +1,6 @@
 """Views for the ``task_list`` app."""
 from django.contrib.auth.decorators import login_required
+from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.http import Http404, HttpResponseRedirect
 from django.utils.decorators import method_decorator
@@ -32,8 +33,27 @@ class LoginRequiredMixin(object):
     """Mixin to add a basic login required decorated dispatch method."""
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
+        # check if the user is permitted to access the content object
+        self.ctype_pk = kwargs.get('ctype_pk')
+        self.obj_pk = kwargs.get('obj_pk')
+        if self.ctype_pk:
+            try:
+                ctype = ContentType.objects.get_for_id(self.ctype_pk)
+            except ContentType.DoesNotExist:
+                pass
+            else:
+                obj = ctype.get_object_for_this_type(pk=self.obj_pk)
+                if not obj.task_list_has_permission(request):
+                    raise Http404
         return super(LoginRequiredMixin, self).dispatch(
             request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        ctx = super(LoginRequiredMixin, self).get_context_data(**kwargs)
+        # if ctype_pk in self.kwargs, add ctype to context
+        if self.ctype_pk:
+            ctx.update({'ctype_pk': self.ctype_pk, 'obj_pk': self.obj_pk})
+        return ctx
 
 
 class TaskCRUDViewMixin(object):
@@ -44,7 +64,11 @@ class TaskCRUDViewMixin(object):
         return kwargs
 
     def get_success_url(self):
-        return reverse('task_list', kwargs={'pk': self.object.task_list.pk})
+        kwargs = {'task_list_pk': self.object.task_list.pk}
+        # if ctype_pk in self.kwargs, redirect to view version with ctype_pk
+        if self.ctype_pk:
+            kwargs.update({'ctype_pk': self.ctype_pk, 'obj_pk': self.obj_pk})
+        return reverse('task_list', kwargs=kwargs)
 
 
 class TaskListCRUDViewMixin(object):
@@ -52,12 +76,17 @@ class TaskListCRUDViewMixin(object):
     def get_form_kwargs(self):
         kwargs = super(TaskListCRUDViewMixin, self).get_form_kwargs()
         # add ctype_pk if available
+        if self.ctype_pk:
+            kwargs.update({'ctype_pk': self.ctype_pk, 'obj_pk': self.obj_pk})
         kwargs.update({'user': self.request.user})
         return kwargs
 
     def get_success_url(self):
+        kwargs = {'pk': self.object.pk}
         # if ctype_pk in self.kwargs, redirect to view version with ctype_pk
-        return reverse('task_list_update', kwargs={'pk': self.object.pk})
+        if self.ctype_pk:
+            kwargs.update({'ctype_pk': self.ctype_pk, 'obj_pk': self.obj_pk})
+        return reverse('task_list_update', kwargs=kwargs)
 
 
 class PermissionMixin(object):
@@ -78,15 +107,22 @@ class PermissionMixin(object):
         if not self.request.user in self.task_list.users.all():
             raise Http404
 
-        # if ctype_pk in self.kwargs, get the content object and call
-        # content_object.task_list_has_permission(request) and raise 404
-        # if method returns false
+        # check if the user is permitted to access the content object
+        self.ctype_pk = kwargs.get('ctype_pk')
+        self.obj_pk = kwargs.get('obj_pk')
+        if self.ctype_pk:
+            ctype = ContentType.objects.get_for_id(self.ctype_pk)
+            obj = ctype.get_object_for_this_type(pk=self.obj_pk)
+            if not obj.task_list_has_permission(request):
+                raise Http404
         return super(PermissionMixin, self).dispatch(
             request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         ctx = super(PermissionMixin, self).get_context_data(**kwargs)
         # if ctype_pk in self.kwargs, add ctype to context
+        if self.ctype_pk:
+            ctx.update({'ctype_pk': self.ctype_pk, 'obj_pk': self.obj_pk})
         ctx.update({'task_list': self.task_list})
         return ctx
 
@@ -102,7 +138,7 @@ class TaskCreateView(PermissionMixin, TaskCRUDViewMixin, CreateView):
     template_name = 'task_list/task_create.html'
 
     def get_object(self, **kwargs):
-        return get_object_or_404(TaskList, pk=self.kwargs.get('pk'))
+        return get_object_or_404(TaskList, pk=self.kwargs.get('task_list_pk'))
 
 
 class TaskDeleteView(PermissionMixin, DeleteView):
@@ -111,7 +147,7 @@ class TaskDeleteView(PermissionMixin, DeleteView):
     template_name = 'task_list/task_delete.html'
 
     def get_success_url(self):
-        return reverse('task_list', kwargs={'pk': self.task_list.pk})
+        return reverse('task_list', kwargs={'task_list_pk': self.task_list.pk})
 
 
 class TaskDoneToggleView(PermissionMixin, FormView):
@@ -171,8 +207,15 @@ class TaskListListView(LoginRequiredMixin, ListView):
     template_name = 'task_list/task_list_list.html'
 
     def get_queryset(self):
-        return TaskList.objects.filter(users__pk=self.request.user.pk,
-                                       is_template=False)
+        ctype = None
+        if self.ctype_pk:
+            try:
+                ctype = ContentType.objects.get_for_id(self.ctype_pk)
+            except ContentType.DoesNotExist:
+                pass
+        return TaskList.objects.filter(
+            users__pk=self.request.user.pk, is_template=False,
+            parent__content_type=ctype, parent__object_id=self.obj_pk)
 
 
 class TaskListUpdateView(TaskListCRUDViewMixin, PermissionMixin, UpdateView):
@@ -186,7 +229,7 @@ class TaskListUpdateView(TaskListCRUDViewMixin, PermissionMixin, UpdateView):
         return reverse('task_list_list')
 
 
-class TaskListView(ListView):
+class TaskListView(LoginRequiredMixin, ListView):
     """
     A view that lists all tasks of a task list and allows to toggle is_done.
 
@@ -196,7 +239,8 @@ class TaskListView(ListView):
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        self.task_list = get_object_or_404(TaskList, pk=kwargs.get('pk'))
+        self.task_list = get_object_or_404(TaskList, pk=kwargs.get(
+            'task_list_pk'))
         if not self.request.user in self.task_list.users.all() or (
                 self.task_list.is_template):
             raise Http404

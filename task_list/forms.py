@@ -1,10 +1,11 @@
 """Forms for the ``task_list`` app."""
 from django import forms
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
-from .models import Task, TaskList
+from .models import Parent, Task, TaskList
 
 
 # ======
@@ -13,8 +14,10 @@ from .models import Task, TaskList
 
 class TaskFormMixin(object):
     """Mixin to add common methods to all Task and TaskList forms."""
-    def __init__(self, user, *args, **kwargs):
+    def __init__(self, user, ctype_pk=None, obj_pk=None, *args, **kwargs):
         self.user = user
+        self.ctype_pk = ctype_pk
+        self.obj_pk = obj_pk
         super(TaskFormMixin, self).__init__(*args, **kwargs)
 
     def save(self, *args, **kwargs):
@@ -92,7 +95,17 @@ class TaskListCreateForm(TaskFormMixin, forms.ModelForm):
             self.instance = TaskList.objects.create_from_template(
                 template, self.cleaned_data.get('title'), self.user)
 
-        return super(TaskListCreateForm, self).save(*args, **kwargs)
+        instance = super(TaskListCreateForm, self).save(*args, **kwargs)
+
+        # if a ctype was given, attach the list to the object
+        if self.ctype_pk:
+            ctype = ContentType.objects.get_for_id(self.ctype_pk)
+            parent = Parent.objects.get_or_create(
+                content_type=ctype, object_id=self.obj_pk,
+                task_list=instance)[0]
+            parent.save()
+
+        return instance
 
 
 class TaskListUpdateForm(TaskFormMixin, forms.ModelForm):

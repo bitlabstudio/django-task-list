@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n task_list_tags %}
 
 {% block main %}
     <h1>{% trans "All of your task lists" %}</h2>
@@ -7,14 +7,14 @@
         <ul>
             {% for task_list in object_list %}
                 <li>
-                    <a href="{% url "task_list" pk=task_list.pk %}">{{ task_list.title }}</a>&nbsp;
-                    (<a href="{% url "task_list_update" pk=task_list.pk %}">{% trans "Edit" %}</a>)
+                    <a href="{% get_ctype_url "task_list" ctype_pk=ctype_pk obj_pk=obj_pk task_list_pk=task_list.pk %}">{{ task_list.title }}</a>&nbsp;
+                    (<a href="{% get_ctype_url "task_list_update" ctype_pk=ctype_pk obj_pk=obj_pk pk=task_list.pk %}">{% trans "Edit" %}</a>)
                 </li>
             {% endfor %}
         </ul>
     {% else %}
         <p>{% trans "No task lists yet. You can add one by clicking below." %}</p>
     {% endif %}
-    <a href="{% url "task_list_create" %}">{% trans "Add new task list" %}</a>
-    <a href="{% url "template_list" %}">{% trans "Edit templates" %}</a>
+    <a href="{% get_ctype_url "task_list_create" ctype_pk=ctype_pk obj_pk=obj_pk %}">{% trans "Add new task list" %}</a>
+    <a href="{% get_ctype_url "template_list" ctype_pk=ctype_pk obj_pk=obj_pk %}">{% trans "Edit templates" %}</a>
 {% endblock %}

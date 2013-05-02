@@ -1,6 +1,8 @@
 """Tests for the forms of the ``task_list`` app."""
 from datetime import date
 
+from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 
 from django_libs.tests.factories import UserFactory
@@ -13,7 +15,7 @@ from ..forms import (
     TaskUpdateForm,
     TemplateForm,
 )
-from ..models import Task, TaskList
+from ..models import Parent, Task, TaskList
 from .factories import TaskFactory, TaskListFactory
 
 
@@ -36,7 +38,7 @@ class TaskCreateFormTestCase(TestCase):
             'With correct data, the form should be valid.'))
 
         instance = form.save()
-        self.assertEqual(TaskList.objects.all().count(), 1, msg=(
+        self.assertEqual(TaskList.objects.count(), 1, msg=(
             'After save is called, there should be one task in the db.'))
 
         self.assertEqual(instance.assigned_to.all()[0], self.user, msg=(
@@ -84,9 +86,13 @@ class TaskListCreateFormTestCase(TestCase):
             'title': 'task list title',
             'template': self.template.pk,
         }
+        self.content_object = UserFactory()
+        self.user_ctype = ContentType.objects.get_for_model(User)
 
     def test_form_validates_and_saves(self):
-        form = TaskListCreateForm(data=self.valid_data, user=self.user)
+        form = TaskListCreateForm(data=self.valid_data, user=self.user,
+                                  ctype_pk=self.user_ctype.pk,
+                                  obj_pk=self.content_object.pk)
         self.assertTrue(form.is_valid(), msg=(
             'With correct data, the form should be valid.'))
 
@@ -95,6 +101,13 @@ class TaskListCreateFormTestCase(TestCase):
             TaskList.objects.filter(is_template=False).count(), 1, msg=(
                 'After save is called, there should be one task list in the'
                 ' db.'))
+        self.assertEqual(Parent.objects.count(), 1, msg=(
+            'There should be one Parent object in the database.'))
+        parent = Parent.objects.get()
+        self.assertEqual(parent.task_list, instance, msg=(
+            'The Parent object should have the task list instance assigned.'))
+        self.assertEqual(parent.content_object, self.content_object, msg=(
+            'The Parent object should have the designated user assigned.'))
 
         self.assertEqual(instance.users.all()[0], self.user, msg=(
             'After save, the user should be assigned to the list.'))
@@ -113,7 +126,7 @@ class TaskListCreateFormTestCase(TestCase):
             TaskList.objects.filter(is_template=False).count(), 2, msg=(
                 'After save is called, there should be another task list in'
                 ' the db.'))
-        self.assertEqual(Task.objects.all().count(), 2, msg=(
+        self.assertEqual(Task.objects.count(), 2, msg=(
             'After save is called, there should be two tasks in the db.'))
 
 
@@ -139,7 +152,7 @@ class TaskListUpdateFormTestCase(TestCase):
             'With correct data, the form should be valid.'))
 
         instance = form.save()
-        self.assertEqual(TaskList.objects.all().count(), 1, msg=(
+        self.assertEqual(TaskList.objects.count(), 1, msg=(
             'After save is called, there should be one task list in the db.'))
 
         self.assertEqual(self.task_list.users.count(), 2, msg=(
@@ -188,7 +201,7 @@ class TaskUpdateFormTestCase(TestCase):
             'With correct data, the form should be valid.'))
 
         instance = form.save()
-        self.assertEqual(Task.objects.all().count(), 1, msg=(
+        self.assertEqual(Task.objects.count(), 1, msg=(
             'After save is called, there should be one task in the db.'))
 
         self.assertEqual(self.task.assigned_to.count(), 2, msg=(
@@ -223,10 +236,10 @@ class TemplateFormTestCase(TestCase):
         self.assertTrue(form.is_valid(), msg=(
             'With correct data, the form should be valid.'))
         instance = form.save()
-        self.assertEqual(TaskList.objects.all().count(), 3, msg=(
+        self.assertEqual(TaskList.objects.count(), 3, msg=(
             'After the list is saved as a template, there should be 3 task'
             ' lists in the db.'))
-        self.assertEqual(Task.objects.all().count(), 2, msg=(
+        self.assertEqual(Task.objects.count(), 2, msg=(
             'After the list is saved as a template, there should be 2 tasks'
             ' in the db.'))
 
@@ -243,9 +256,9 @@ class TemplateFormTestCase(TestCase):
         self.assertTrue(form.is_valid(), msg=(
             'With correct data, the form should be valid.'))
         form.save()
-        self.assertEqual(TaskList.objects.all().count(), 3, msg=(
+        self.assertEqual(TaskList.objects.count(), 3, msg=(
             'After template is saved again, there should still be 3 task'
             ' lists in the db.'))
-        self.assertEqual(Task.objects.all().count(), 2, msg=(
+        self.assertEqual(Task.objects.count(), 2, msg=(
             'After the template is saved again, there should still be 2 tasks'
             ' in the db.'))

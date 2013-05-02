@@ -1,6 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
-{% load url from future %}
+{% load i18n task_list_tags %}
 
 {% block main %}
 <h1>{% trans "Delete template?" %}</h1>
@@ -16,7 +15,7 @@
         <input type="hidden" name="next" value="{{ next }}" />
         <a href="{{ next }}">{% trans "or cancel" %}</a>
     {% else %}
-        <a href="{% url "template_list" %}">{% trans "or cancel" %}</a>
+        <a href="{% get_ctype_url "template_list" ctype_pk=ctype_pk obj_pk=obj_pk %}">{% trans "or cancel" %}</a>
     {% endif %}
 </form>
 {% endblock %}

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n task_list_tags %}
 
 {% block main %}
     <h1>{{ task_list.title }}</h2>
@@ -7,9 +7,9 @@
         <table>
             {% for task in object_list %}
                 <tr>
-                    <form action="{% url "task_toggle" pk=task.pk%}" method="post">
+                    <form action="{% get_ctype_url "task_toggle" pk=task.pk ctype_pk=ctype_pk obj_pk=obj_pk %}" method="post">
                         {% csrf_token %}
-                        <td><a href="{% url "task_update" pk=task.pk %}">{{ task.title }}</a></td>
+                        <td><a href="{% get_ctype_url "task_update" pk=task.pk ctype_pk=ctype_pk obj_pk=obj_pk %}">{{ task.title }}</a></td>
                         <td>
                             <input type="submit" name="toggle" value="{% if task.is_done %}{% trans "Mark undone" %}{% else %}{% trans "Mark done" %}{% endif %}" />
                             <input type="hidden" name="task" value="{{ task.pk }}"/>
@@ -22,6 +22,6 @@
     {% else %}
         <p>{% trans "No task in this list yet. You can add one by clicking below." %}</p>
     {% endif %}
-    <a href="{% url "task_create" pk=task_list.pk %}">{% trans "Add new task" %}</a>
-    <a href="{% url "task_list_list" %}">{% trans "Back to all lists" %}</a>
+    <a href="{% get_ctype_url "task_create" task_list_pk=task_list.pk ctype_pk=ctype_pk obj_pk=obj_pk %}">{% trans "Add new task" %}</a>
+    <a href="{% get_ctype_url "task_list_list" ctype_pk=ctype_pk obj_pk=obj_pk %}">{% trans "Back to all lists" %}</a>
 {% endblock %}
