@@ -30,7 +30,7 @@ from .models import Task, TaskList
 
 
 class LoginRequiredMixin(object):
-    """Mixin to add a basic login required decorated dispatch method."""
+    """Mixin to add a login required decorator and ctype handling to views."""
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         # check if the user is permitted to access the content object
@@ -38,12 +38,13 @@ class LoginRequiredMixin(object):
         self.obj_pk = kwargs.get('obj_pk')
         if self.ctype_pk:
             try:
-                ctype = ContentType.objects.get_for_id(self.ctype_pk)
+                self.ctype = ContentType.objects.get_for_id(self.ctype_pk)
             except ContentType.DoesNotExist:
-                pass
+                raise Http404
             else:
-                obj = ctype.get_object_for_this_type(pk=self.obj_pk)
-                if not obj.task_list_has_permission(request):
+                self.obj = self.ctype.get_object_for_this_type(pk=self.obj_pk)
+                if (not hasattr(self.obj, 'task_list_has_permission') or
+                        not self.obj.task_list_has_permission(request)):
                     raise Http404
         return super(LoginRequiredMixin, self).dispatch(
             request, *args, **kwargs)
@@ -52,7 +53,9 @@ class LoginRequiredMixin(object):
         ctx = super(LoginRequiredMixin, self).get_context_data(**kwargs)
         # if ctype_pk in self.kwargs, add ctype to context
         if self.ctype_pk:
-            ctx.update({'ctype_pk': self.ctype_pk, 'obj_pk': self.obj_pk})
+            ctx.update({
+                'ctype_pk': self.ctype_pk, 'obj_pk': self.obj_pk,
+                'ctype': self.ctype, 'obj': self.obj})
         return ctx
 
 
@@ -89,7 +92,7 @@ class TaskListCRUDViewMixin(object):
         return reverse('task_list_update', kwargs=kwargs)
 
 
-class PermissionMixin(object):
+class PermissionMixin(LoginRequiredMixin):
     """
     Adds a dispatch method that checks if the user is assigned to the object.
 
@@ -104,25 +107,13 @@ class PermissionMixin(object):
             self.task_list = self.object
         # since we allow to only add users to a task, that are on the task
         # list, the following check will also be secure for tasks
-        if not self.request.user in self.task_list.users.all():
+        if not request.user in self.task_list.users.all():
             raise Http404
-
-        # check if the user is permitted to access the content object
-        self.ctype_pk = kwargs.get('ctype_pk')
-        self.obj_pk = kwargs.get('obj_pk')
-        if self.ctype_pk:
-            ctype = ContentType.objects.get_for_id(self.ctype_pk)
-            obj = ctype.get_object_for_this_type(pk=self.obj_pk)
-            if not obj.task_list_has_permission(request):
-                raise Http404
         return super(PermissionMixin, self).dispatch(
             request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         ctx = super(PermissionMixin, self).get_context_data(**kwargs)
-        # if ctype_pk in self.kwargs, add ctype to context
-        if self.ctype_pk:
-            ctx.update({'ctype_pk': self.ctype_pk, 'obj_pk': self.obj_pk})
         ctx.update({'task_list': self.task_list})
         return ctx
 
@@ -241,7 +232,7 @@ class TaskListView(LoginRequiredMixin, ListView):
     def dispatch(self, request, *args, **kwargs):
         self.task_list = get_object_or_404(TaskList, pk=kwargs.get(
             'task_list_pk'))
-        if not self.request.user in self.task_list.users.all() or (
+        if not request.user in self.task_list.users.all() or (
                 self.task_list.is_template):
             raise Http404
         return super(TaskListView, self).dispatch(

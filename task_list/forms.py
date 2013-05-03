@@ -101,7 +101,7 @@ class TaskListCreateForm(TaskFormMixin, forms.ModelForm):
         if self.ctype_pk:
             ctype = ContentType.objects.get_for_id(self.ctype_pk)
             parent = Parent.objects.get_or_create(
-                content_type=ctype, object_id=self.obj_pk,
+                content_type_id=ctype.pk, object_id=self.obj_pk,
                 task_list=instance)[0]
             parent.save()
 
