@@ -60,18 +60,21 @@ class TaskListManagerTestCase(TestCase):
     def setUp(self):
         self.task_list = TaskListFactory()
         self.task = TaskFactory(task_list=self.task_list)
+        self.template = TaskListFactory(is_template=True)
+        self.template_task = TaskFactory(task_list=self.template)
         self.user = UserFactory()
         self.other_user = UserFactory()
         self.task_list.users.add(self.user, self.other_user)
+        self.template.users.add(self.user, self.other_user)
 
-    def test_manager(self):
-        """Tests for the ``TaskListManager`` custom manager."""
+    def test_create_template_from_task_list(self):
+        """Tests for the ``create_template_from_task_list`` manager method."""
         template = TaskList.objects.create_template_from_task_list(
             self.task_list, self.user)
-        self.assertEqual(TaskList.objects.all().count(), 2, msg=(
+        self.assertEqual(TaskList.objects.all().count(), 3, msg=(
             'After creating a template, there should be 2 task lists in the'
             ' database.'))
-        self.assertEqual(Task.objects.all().count(), 2, msg=(
+        self.assertEqual(Task.objects.all().count(), 3, msg=(
             'After creating a template, there should be 2 tasks in the'
             ' database.'))
         self.assertTrue(template.is_template, msg=(
@@ -81,8 +84,10 @@ class TaskListManagerTestCase(TestCase):
         self.assertEqual(template.tasks.count(), 1, msg=(
             'The template should have one task.'))
 
+    def create_from_template(self):
+        """Tests for the ``create_from_template`` manager method."""
         task_list = TaskList.objects.create_from_template(
-            template, 'new', self.user)
+            self.template, 'new', self.user)
         self.assertEqual(TaskList.objects.all().count(), 3, msg=(
             'After creating a task list, there should be 3 task lists in the'
             ' database.'))
@@ -93,7 +98,7 @@ class TaskListManagerTestCase(TestCase):
             'Task list should not be a template.'))
         self.assertEqual(task_list.users.count(), 1, msg=(
             'The task list should still have 1 user assigned.'))
-        self.assertEqual(template.tasks.count(), 1, msg=(
+        self.assertEqual(task_list.tasks.count(), 1, msg=(
             'The task list should have one task.'))
 
 
