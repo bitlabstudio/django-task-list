@@ -3,6 +3,7 @@
 
 {% block main %}
     <h1>{% trans "Update task" %}</h1>
+    <p>{% trans "Update the details of your task." %}</p>
     <form method="post" action="{% get_ctype_url "task_toggle" pk=task.pk ctype_pk=ctype_pk obj_pk=obj_pk %}">
         <div>
             {% csrf_token %}
@@ -14,7 +15,6 @@
     <form method="post" action=".">
         {% csrf_token %}
         {{ form.non_field_errors }}
-        <p>{% trans "Update the details of your task list." %}</p>
         {% for field in form %}
             {% include "task_list/partials/simple_form_field.html" %}
         {% endfor %}

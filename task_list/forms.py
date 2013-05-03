@@ -133,15 +133,11 @@ class TaskUpdateForm(TaskFormMixin, forms.ModelForm):
         return super(TaskUpdateForm, self).save(*args, **kwargs)
 
 
-class TemplateForm(forms.ModelForm):
+class TemplateForm(TaskFormMixin, forms.ModelForm):
     """Form to manage ``TaskList`` instances, that are marked as template."""
     class Meta:
         model = TaskList
         fields = ('title',)
-
-    def __init__(self, user, *args, **kwargs):
-        self.user = user
-        super(TemplateForm, self).__init__(*args, **kwargs)
 
     def clean_title(self):
         data = self.data.get('title')

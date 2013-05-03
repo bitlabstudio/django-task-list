@@ -138,7 +138,10 @@ class TaskDeleteView(PermissionMixin, DeleteView):
     template_name = 'task_list/task_delete.html'
 
     def get_success_url(self):
-        return reverse('task_list', kwargs={'task_list_pk': self.task_list.pk})
+        kwargs = {'task_list_pk': self.task_list.pk}
+        if self.ctype_pk:
+            kwargs.update({'ctype_pk': self.ctype_pk, 'obj_pk': self.obj_pk})
+        return reverse('task_list', kwargs=kwargs)
 
 
 class TaskDoneToggleView(PermissionMixin, FormView):

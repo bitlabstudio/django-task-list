@@ -197,7 +197,7 @@ class TaskListListViewTestCase(PatchedViewTestMixin, TestCase):
     def test_view(self):
         self.should_redirect_to_login_when_anonymous()
         self.should_be_callable_when_authenticated(self.user)
-        self.is_callable(kwargs={'ctype_pk': 999, 'obj_pk': 1234})
+        self.is_not_callable(kwargs={'ctype_pk': 999, 'obj_pk': 1234})
 
 
 class TaskListUpdateViewTestCase(PatchedViewTestMixin, TestCase):
