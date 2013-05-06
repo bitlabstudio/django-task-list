@@ -271,7 +271,7 @@ class TemplateDeleteView(PermissionMixin, DeleteView):
         kwargs = {}
         if self.ctype_pk:
             kwargs.update({'ctype_pk': self.ctype_pk, 'obj_pk': self.obj_pk})
-        return reverse('template_list')
+        return reverse('template_list', kwargs=kwargs)
 
 
 class TemplateListView(LoginRequiredMixin, ListView):
