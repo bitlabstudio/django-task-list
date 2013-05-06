@@ -192,7 +192,10 @@ class TaskListDeleteView(PermissionMixin, DeleteView):
     template_name = 'task_list/task_list_delete.html'
 
     def get_success_url(self):
-        return reverse('task_list_list')
+        kwargs = {}
+        if self.ctype_pk:
+            kwargs.update({'ctype_pk': self.ctype_pk, 'obj_pk': self.obj_pk})
+        return reverse('task_list_list', kwargs=kwargs)
 
 
 class TaskListListView(LoginRequiredMixin, ListView):
@@ -219,8 +222,10 @@ class TaskListUpdateView(TaskListCRUDViewMixin, PermissionMixin, UpdateView):
     template_name = 'task_list/task_list_update.html'
 
     def get_success_url(self):
-        # if ctype_pk in self.kwargs, redirect to view version with ctype_pk
-        return reverse('task_list_list')
+        kwargs = {}
+        if self.ctype_pk:
+            kwargs.update({'ctype_pk': self.ctype_pk, 'obj_pk': self.obj_pk})
+        return reverse('task_list_list', kwargs=kwargs)
 
 
 class TaskListView(LoginRequiredMixin, ListView):
