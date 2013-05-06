@@ -268,6 +268,9 @@ class TemplateDeleteView(PermissionMixin, DeleteView):
     template_name = 'task_list/template_delete.html'
 
     def get_success_url(self):
+        kwargs = {}
+        if self.ctype_pk:
+            kwargs.update({'ctype_pk': self.ctype_pk, 'obj_pk': self.obj_pk})
         return reverse('template_list')
 
 
